@@ -1,0 +1,6 @@
+%all units used are in mm, as the stage requires input in mm (and for the
+%calculations it doesnt matter).
+
+ChannelW = 5; %Width of the microfluidic channel in mm
+ChannelL = 10;
+
