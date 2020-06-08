@@ -3,57 +3,54 @@ classdef Particle < handle
         x           %x position of the particle
         y           %y position of the particle
         r           %radius of the particle
-        Fg          %gravitational force on particle
+        Vg          %gravitational force on particle
+        dVx
+        dVy
         Vx
         Vy
-        ax
-        ay
-        Fx          %force in x-direction
-        Fy          %force in y-direction
         XminBoundary = false;
         YminBoundary = false;
         YmaxBoundary = false;
     end
     
     methods
-        function obj = Particle(x, y, r, Fg)
+        function obj = Particle(x, y, r, Vg)
             obj.x = x;
             obj.y = y;
             obj.r = r;
-            obj.Fg = Fg;
+            obj.Vg = Vg;
             obj.Vx = 0;
             obj.Vy = 0;
-            obj.ax = 0;
-            obj.ay = 0;
-            obj.Fx = 0;
-            obj.Fy = 0;
         end
         function obj = UpdatePosition(obj, timestep)
-            obj.x = 0.5*obj.ax*timestep^2 + obj.Vx*timestep + obj.x;
-            obj.y = 0.5*obj.ay*timestep^2 + obj.Vy*timestep + obj.y;
+            obj.x = obj.Vx*timestep + obj.x;
+            obj.y = obj.Vy*timestep + obj.y;
         end
-        function obj = UpdateForce(obj, Positions, n)
-            obj.Fx = obj.Fg;
-            Positions(n) = [];
-            Nparticles = length(Positions);
-            dx = obj.x - Positions.x;
-            dy = obj.y - Positions.y;
-            d = sqrt(dx.^2-dy.^2);
-            for i = 1:Nparticles
-                if d <= obj.r + Positions(i).r
-                    theta = angle(dx + 1i*dy);
-                    
+        function obj = UpdatedV(obj, Positions, n)
+            V = [-obj.Vg, 0];
+            if obj.XminBoundary
+                V = [0, 0];
+            else
+                Positions(n) = [];
+                Nparticles = length(Positions);
+                dx = [Positions.x] - obj.x;
+                dy = [Positions.y] - obj.y;
+                d = sqrt(dx.^2+dy.^2);
+                for i = 1:Nparticles
+                    if d(i) <= obj.r + Positions(i).r
+                        theta = angle(dx(i) + 1i*dy(i));
+                        phi = acos(dot([V(1), V(2)],[dx(i), dy(i)])/(sqrt(V(1)^2+V(2)^2)*sqrt(dx(i)^2+dy(i)^2)));
+                        len = sin(phi)*sqrt(V(1)^2 + V(2)^2);
+                        V(1) = cos(-theta)*len*sin(phi);
+                        V(2) = sin(-theta)*len*sin(phi);
+                        
+                        obj.x = Positions(i).x - dx(i)*((obj.r + Positions(i).r)/d(i));
+                        obj.y = Positions(i).y - dy(i)*((obj.r + Positions(i).r)/d(i));
+                    end
                 end
             end
-            
-        end
-        function obj = UpdateAcceleration(obj)
-            obj.ax = obj.ax + obj.Fx;
-            obj.ay = obj.ay + obj.Fy;
-        end
-        function obj = UpdateVelocity(obj, timestep)
-            obj.Vx = obj.Vx + obj.ax*timestep;
-            obj.Vy = obj.Vy + obj.ay*timestep;
+            obj.Vx = V(1);
+            obj.Vy = V(2);
         end
         function obj = IsOnBoundary(obj, ChannelW)
             if obj.x <= obj.r

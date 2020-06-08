@@ -13,10 +13,15 @@ Rsmall = 0.05; %Radius of the small particles in mm
 Rlarge = 0.075; %Radius of the large particles in mm
 AR = 1; %Ratio of Asmall over Alarge
 
-timestep = 0.1;
+timestep = 0.01;
 Vg = 0.1;
 
 [Psmall, Plarge] = Random_placement(ChannelW, ChannelL, Phi_RCP, Rsmall, Rlarge, AR);
+
+pool = gcp('nocreate'); %Call the active parallelpool "pool". If there isnt one, do nothing
+if isempty(pool)
+    pool = parpool(10);
+end
 
 if verbose
     Nsmall = length(Psmall);

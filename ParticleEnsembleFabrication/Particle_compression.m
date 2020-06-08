@@ -1,30 +1,29 @@
-%function [Psmall, Plarge] = Particle_compression(Psmall, Plarge, Rsmall, Rlarge, timestep, Fg)
-Psmall = [1,1];
-Plarge = [];
-timestep = 0.1;
-Frep = 0.5;
+function [Psmall, Plarge] = Particle_compression(Psmall, Plarge, Rsmall, Rlarge, timestep, Vg, ChannelL, ChannelW, pool)
+    Nsmall = size(Psmall,1);
+    Nlarge = size(Plarge,1);
+    Nparticles = Nsmall + Nlarge;
 
-Nsmall = length(Psmall);
-Nlarge = length(Plarge);
-Nparticles = Nsmall + Nlarge;
-
-for i = 1:1
-    if i <= Nsmall
-        P(i) = Particle(Psmall(i,1), Psmall(i,2), Rsmall, -Fg);
-    else
-        P(i) = Particle(Plarge(i-Nsmall,1), Plarge(i-Nsmall,2), Rlarge, -Fg);
+    for i = 1:Nparticles
+        if i <= Nsmall
+            P(i) = Particle(Psmall(i,1), Psmall(i,2), Rsmall, Vg);
+        else
+            P(i) = Particle(Plarge(i-Nsmall,1), Plarge(i-Nsmall,2), Rlarge, Vg);
+        end
     end
-end
 
-cont = true;
+    count = 0;
 
-while cont
-    for i = 1
-        UpdatePosition(P(i), timestep);
-        IsOnBoundary(P(i), ChannelW);
-        UpdateForce(P(i), P, i, Frep);
-        UpdateAcceleration(P(i));
-        UpdateVelocity(P(i), timestep);
-        test = [P(i).x, P(i).y];
+    while count < 10000
+        for i = 1:Nparticles
+            UpdatePosition(P(i), timestep);
+            IsOnBoundary(P(i), ChannelW);
+            UpdatedV(P(i), P, i);
+        end
+        count = count + 1;
+    end
+    
+    for i = 1:Nparticles
+        Psmall = [[P(1:Nsmall).x]',[P(1:Nsmall).y]'];
+        Plarge = [[P(Nsmall+1:end).x]',[P(Nsmall+1:end).y]'];
     end
 end
