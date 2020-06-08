@@ -1,0 +1,25 @@
+%function [Psmall, Plarge] = Particle_compression(Psmall, Plarge, Rsmall, Rlarge, timestep)
+Nsmall = length(Psmall);
+Nlarge = length(Plarge);
+Nparticles = Nsmall + Nlarge;
+
+for i = 1:1
+    if i <= Nsmall
+        P(i) = Particle(Psmall(i,1), Psmall(i,2), Rsmall, -timestep, 0);
+    else
+        P(i) = Particle(Plarge(i-Nsmall,1), Plarge(i-Nsmall,2), Rlarge, -timestep, 0);
+    end
+end
+
+cont = true;
+
+while cont
+    for i = 55
+        testx(1) = P(i).x;
+        UpdatePosition(P(i));
+        Positions = {
+        IsOnBoundary(P(i), ChannelW);
+        UpdateForce(P(i), Positions);
+        testx(2) = P(i).x;
+    end
+end
