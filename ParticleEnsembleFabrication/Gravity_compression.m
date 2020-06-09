@@ -1,4 +1,4 @@
-function [Psmall, Plarge] = Particle_compression(Psmall, Plarge, Rsmall, Rlarge, timestep, Vg, ChannelL, ChannelW, pool)
+function [Psmall, Plarge] = Gravity_compression(Psmall, Plarge, Rsmall, Rlarge, timestep, Vg, ChannelL, ChannelW, pool)
     Nsmall = size(Psmall,1);
     Nlarge = size(Plarge,1);
     Nparticles = Nsmall + Nlarge;

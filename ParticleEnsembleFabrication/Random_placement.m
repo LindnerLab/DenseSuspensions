@@ -1,5 +1,5 @@
-function [Psmall, Plarge] = Random_placement(ChannelW, ChannelL, Phi_RCP, Rsmall, Rlarge, AR)
-Aparticles = ChannelW*ChannelL*Phi_RCP; %Determine area used by particles, given a Phi_RCP
+function [Psmall, Plarge] = Random_placement(ChannelW, ChannelL, Phi_RCP, Rsmall, Rlarge, AR, CR, Nrecursion)
+Aparticles = ChannelW*ChannelL*Phi_RCP*CR; %Determine area used by particles, given a Phi_RCP
 
 Nsmall = ceil(Aparticles*sqrt(AR)/(2*pi*Rsmall^2));
 Nlarge = ceil(Aparticles/(sqrt(AR)*2*pi*Rlarge^2));
@@ -33,8 +33,8 @@ for i = Nparticles:-1:1
         found = true;
     end
     
-    while not(found) && Ntry < 1000
-        x = rand*(ChannelL*1.5-2*r)+r;
+    while not(found) && Ntry < 10000
+        x = rand*(ChannelL-2*r)+r;
         y = rand*(ChannelW-2*r)+r;
         
         if not(isempty(Psmall))
@@ -57,6 +57,17 @@ for i = Nparticles:-1:1
         end
         Ntry = Ntry + 1;
     end
+end
+
+if not(length([Psmall; Plarge]) == Nparticles)
+    if Nrecursion < 10
+        Nrecursion = Nrecursion + 1;
+        [Psmall, Plarge] = Random_placement(ChannelW, ChannelL, Phi_RCP, Rsmall, Rlarge, AR, CR, Nrecursion);
+    else
+        Psmall = [];
+        Plarge = [];
+    end
+end
 end
 
 
