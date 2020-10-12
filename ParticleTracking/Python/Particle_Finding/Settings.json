@@ -1,0 +1,33 @@
+{
+    "Rsmall": [
+        19,
+        22
+    ],
+    "Rlarge": [
+        26,
+        30
+    ],
+    "Crop": [
+        0,
+        2303,
+        158,
+        2178
+    ],
+    "thresh": 36000.0,
+    "Inv_img": true,
+    "Dev_gauss": true,
+    "SelectionCriteria": {
+        "Property": [
+            "Area",
+            "Area"
+        ],
+        "Value": [
+            35,
+            200
+        ],
+        "Criteria": [
+            "Greater",
+            "Smaller"
+        ]
+    }
+}

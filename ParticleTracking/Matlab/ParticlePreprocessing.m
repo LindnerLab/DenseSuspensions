@@ -1,18 +1,23 @@
 close all;
 clear all;
 
-directory = 'F:\Lars\Oscillatory Compression\20200713 Soft Particle\Avg100_Amp80_Per120_Back25\';
-files = dir(fullfile(directory,'RawData','*.tif'));
+tic;
+
+directory = 'F:\Lars\Oscillatory Compression\20200820 Soft Particle Oscillation\Avg75_Amp50_Per120_Back25\';
+version = 'V1';
+files = dir(fullfile(directory,'RawData',version,'_00001.tif'));
+output = strcat('Preprocessed\',version);
 nFiles = length(files);
 
 load_settings = true;
-verbose = false;
-Inv_img = true;
-Save_files = true;  
-Parallel_processing = true;
+verbose = true;
+Inv_img = true; 
+Dev_gauss = true;
+Save_files = false;  
+Parallel_processing = false;
 
 if load_settings
-    uiopen('*.mat');
+    Settings = open(fullfile(directory,output,'Settings.mat')).Settings;
     Rsmall = Settings.Rsmall;
     Rlarge = Settings.Rlarge;
     Inv_img = Settings.Inv_img;
@@ -23,35 +28,52 @@ else
     Rsmall = [19, 22];
     Rlarge = [26, 30];
 
-    [Img,Crop] = imcrop(imread(fullfile(directory,'RawData',files(1).name)));
+    [Img,Crop] = imcrop(imread(fullfile(files(1).folder,files(1).name)));
     
-    thresh = 3.6E4;
+    thresh = 3.2E4;
     
     SelectionCriteria = struct('Property',[],'Value',[],'Criteria',[]);
 
     % The convoluted peak corresponding to a particle shouldn't be too small
     % (size depends on the size of the counted region of the mask)
     SelectionCriteria(1).Property = 'Area';
-    SelectionCriteria(1).Value = 50;
+    SelectionCriteria(1).Value = 35;
     SelectionCriteria(1).Criteria = 'Greater';
 
     % The convoluted peak shouldn't be too large either
     % (size depends on the size of the counted region of the mask)
     SelectionCriteria(2).Property = 'Area';
-    SelectionCriteria(2).Value = 200;
+    SelectionCriteria(2).Value = 180;
     SelectionCriteria(2).Criteria = 'Smaller';
 end
 
 %% Find Particles -- Below this no input required
-if Parallel_processing && isempty(gcp('nocreate'))
-        p = parpool(6);
+if ~exist(fullfile(directory,'Preprocessed'),'dir')
+    mkdir(fullfile(directory,'Preprocessed'));
+    mkdir(fullfile(directory,'Preprocessed',version));
+    mkdir(fullfile(directory,'Preprocessed',version,'MAT'));
+    mkdir(fullfile(directory,'Preprocessed',version,'CSV'));
+    
+elseif ~exist(fullfile(directory,'Preprocessed',version),'dir')
+    mkdir(fullfile(directory,'Preprocessed',version));
+    mkdir(fullfile(directory,'Preprocessed',version,'MAT'));
+    mkdir(fullfile(directory,'Preprocessed',version,'CSV'));
 end
 
-parfor i = 1:nFiles
-    if not(isfile([directory,'Preprocessed\',sprintf('%05d',i),'.mat'])) || not(Save_files)
-        Img = imcrop(imread(fullfile(directory,'RawData',files(i).name)),Crop);
-        Img_size = size(Img);
+if Parallel_processing && isempty(gcp('nocreate'))
+        p = parpool(10);
+end
 
+for i = 1:nFiles
+    if not(isfile(fullfile(directory,output,[sprintf('%05d',i),'.mat']))) || not(Save_files)
+        Img = imcrop(imread(fullfile(files(i).folder,files(i).name)),Crop);
+        Img_size = size(Img);
+        
+        if Dev_gauss
+            Img = double(Img)./imgaussfilt(double(Img),50);
+            Img = uint16(Img.*(39050/1.0245));
+        end
+        
         if Inv_img
             Img_inv = imcomplement(Img);
             Img_thresh = Img_inv;
@@ -89,8 +111,12 @@ parfor i = 1:nFiles
         if verbose
             figure
             imshow(Img);
-            viscircles([Psmall(:,1), Psmall(:,2)],ones(Nsmall,1)*mean(Rsmall),'EdgeColor','b');
-            viscircles([Plarge(:,1), Plarge(:,2)],ones(Nlarge,1)*mean(Rlarge),'EdgeColor','r');
+            viscircles([Psmall(:,1), Psmall(:,2)],ones(Nsmall,1)*mean(Rsmall),...
+                'EdgeColor','b',...
+                'LineWidth',1.5);
+            viscircles([Plarge(:,1), Plarge(:,2)],ones(Nlarge,1)*mean(Rlarge),...
+                'EdgeColor','r',...
+                'LineWidth',1.5);
         end
 
         %% Save found particle locations
@@ -105,7 +131,9 @@ parfor i = 1:nFiles
                 Pall(j).y = Y(j);
                 Pall(j).r = R(j);
             end
-            SaveParallel([directory,'Preprocessed\',sprintf('%05d',i),'.mat'],Pall);
+            SaveParallel(fullfile(directory,output,'MAT',[sprintf('%05d',i),'.mat']),...
+                         fullfile(directory,output,'CSV',[sprintf('%05d',i),'.csv']),...
+                         Pall);
         end
     end
 end
@@ -117,8 +145,10 @@ if Save_files
                       'thresh',thresh,...
                       'Crop',Crop,...
                       'SelectionCriteria',SelectionCriteria);
-    save(fullfile(directory,'Preprocessed','Settings.mat'),'Settings');
+    save(fullfile(directory,output,'Settings.mat'),'Settings');
 end
+
+toc
 
 
 

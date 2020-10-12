@@ -13,8 +13,8 @@ function [mask] = AnnulusMask(r, Img_size)
     end
     
     if idx == 1
-        mask = mask_temp(:,:,1) - 1.5*mask_temp(:,:,2);
+        mask = mask_temp(:,:,1) - 2*mask_temp(:,:,2);
     else
-        mask = mask_temp(:,:,2) - 1.5*mask_temp(:,:,1);
+        mask = mask_temp(:,:,2) - 2*mask_temp(:,:,1);
     end
 end

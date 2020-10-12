@@ -1,13 +1,13 @@
 close all;
 clear all;
 
-directory = 'F:\Lars\Oscillatory Compression\20200630 Ensemble Oscillation\Ensemble_oscillation_compression\Avg130_Amp100_Per120\';
+directory = 'F:\Lars\Oscillatory Compression\20200901 Fitting Noise\';
 files = dir(fullfile(directory, 'RawData','*.tif'));
 nFiles = length(files);
 verbose = true;
 Rsmall = [31, 28];
 
-rect = [121,163,2183,2026];
+rect = [0.510000000000000,169.510000000000,2303.98000000000,2019.98000000000];
 
 % [~,rect] = imcrop(imread(fullfile(files(1).folder,files(1).name)));
 
@@ -36,6 +36,9 @@ for i = 1%:nFiles
     ImgGauss(ImgGauss < 2000) = 2000;
     ImgCorr = ImgBg-ImgGauss;
     ImgCorr(ImgBg == 0) = 0;
+    
+    mask = AnnulusMask(Rsmall, ImgSize);
+    [Psmall] = FindParticlesConvolution(ImgCorr,Rsmall(1),SelectionCriteria,0.55,mask,verbose);
     
     mask = AnnulusMask(Rsmall, ImgSize);
     [Psmall] = FindParticlesConvolution(ImgCorr,Rsmall(1),SelectionCriteria,0.55,mask,verbose);
