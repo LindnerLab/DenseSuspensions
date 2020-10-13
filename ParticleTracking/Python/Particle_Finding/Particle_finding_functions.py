@@ -14,40 +14,39 @@ import skimage.measure as measure
 import ray
 
 #%%
-def check_file_structure(directory, version):
+def check_file_structure(path):
     '''
     Insert description here
     '''
-    if not os.path.isdir(os.path.join(directory, 'Preprocessed')):
-        os.mkdir(os.path.join(directory, 'Preprocessed'))
-        os.mkdir(os.path.join(directory, 'Preprocessed', version))
-        os.mkdir(os.path.join(directory, 'Preprocessed', version, 'PKL'))
+    if not os.path.isdir(os.path.join(path[0], path[2])):
+        os.mkdir(os.path.join(path[0], path[2]))
+        os.mkdir(os.path.join(path[0], path[2:4]))
+        os.mkdir(os.path.join(path[0], path[2:4], 'PKL'))
         print('Output File structure created')
-    elif not os.path.isdir(os.path.join(directory, 'Preprocessed', version)):
-        os.mkdir(os.path.join(directory, 'Preprocessed', version))
-        os.mkdir(os.path.join(directory, 'Preprocessed', version, 'PKL'))
+    elif not os.path.isdir(os.path.join(path[0], path[2:4])):
+        os.mkdir(os.path.join(path[0], path[2:4]))
+        os.mkdir(os.path.join(path[0], path[2:4], 'PKL'))
         print('Output File structure created')
-    elif not os.path.isdir(os.path.join(directory, 'Preprocessed', version,
+    elif not os.path.isdir(os.path.join(path[0], path[2:4],
                                         'PKL')):
-        os.mkdir(os.path.join(directory, 'Preprocessed', version, 'PKL'))
+        os.mkdir(os.path.join(path[0], path[2:4], 'PKL'))
         print('Output File structure created')
     else:
         print('Output File structure already present')
         
 #%%
-def image_pretreatment(directory, version, output, fname, settings):
+def image_pretreatment(path, fname, settings):
     '''
     Insert description here
     '''
     # Only pretreat image if the image isn't already analyzed
-    if not os.path.isfile(os.path.join(directory,
-                                       output,
+    if not os.path.isfile(os.path.join(path[0],
+                                       path[2],
                                        'PKL',
                                        'P1'+fname[0:-4]+'.pkl')):
         crop = np.array(settings['crop'])
-        img = plt.imread(os.path.join(directory,
-                                      'RawData',
-                                      version,
+        img = plt.imread(os.path.join(path[0:2],
+                                      path[3],
                                       fname))
         img = img[crop[0]:crop[1]][crop[2]:crop[3]]
         # Divide image by gaussian blur of image to correct for lumination
@@ -62,7 +61,7 @@ def image_pretreatment(directory, version, output, fname, settings):
     return img
 
 #%%
-def find_serial(img, directory, output, fname, settings):
+def find_serial(img, path, fname, settings):
     '''
     Insert description here
     '''
@@ -96,8 +95,8 @@ def find_serial(img, directory, output, fname, settings):
                                      '_',
                                      fname[0:-4],
                                      '.pkl'])
-            particles.to_pickle(os.path.join(directory,
-                                             output,
+            particles.to_pickle(os.path.join(path[0],
+                                             path[2],
                                              'PKL',
                                              out_file_name))
         # Also, output the found centers as array for easy debugging
@@ -107,15 +106,15 @@ def find_serial(img, directory, output, fname, settings):
 
 #%%
 @ray.remote
-def find_parallel(directory, version, output, fname, settings):
+def find_parallel(path, fname, settings):
     '''
     Insert description here
     '''
     # Set verbose to False (parallel doesn' work with verbose), pretreat image
     # and then apply the 'normal' find_serial to the pretreated image
     settings['verbose'] = False
-    img = image_pretreatment(directory, version, fname, settings)
-    find_serial(img, directory, output, fname, settings)
+    img = image_pretreatment(path, fname, settings)
+    find_serial(img, path, fname, settings)
     
 #%%
 def annulus_mask(radius, img_size):
