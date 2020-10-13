@@ -1,9 +1,21 @@
 # -*- coding: utf-8 -*-
 """
-This is the main script belonging to the particle finding algorith. This
-script 
+This is the main script belonging to the particle finding algorith. The
+algorithm uses an FFT convolutional method to determine the locations of
+rotationally symmetric particles (given a provided template called 'mask')
+with an accuracy of +- 0.1 pixel (given that the particles are suffiently
+large, lowest radius tested = 20 px).
+This script can be run directly on the test case provided (given that the
+correct main directory is provided).
 
-@author: Lars Kool
+Contributors : Lars Kool
+Affiliations : Laboratoire Physique et Méchanique des Milieux Hétérogènes
+(PMMH), ESPCI, Paris, France
+               
+This project has received funding from the European Union’s Horizon 2020
+research and innovation programme under the Marie Skłodowska-Curie grant
+agreement No. 813162
+More info on this programme: https://caliper-itn.org/
 """
 
 import os
@@ -13,16 +25,16 @@ import ray
 import particle_finding_functions as Pff
 
 #%% Indicate data locations
-DIRECTORY = r'F:\Lars\Oscillatory Compression\20200820 Soft Particle Oscillation\Avg75_Amp50_Per120_Back25'
-VERSION = r'V1'
+DIRECTORY = r'E:\Lars\Github\DenseSuspensions\ParticleTracking\Python\Particle_Finding\test_case'
+VERSION = r'test'
 INPUT = r'RawData'
 OUTPUT = r'Preprocessed'
 PATH = [DIRECTORY, INPUT, OUTPUT, VERSION]
-files = [f for f in os.listdir(os.path.join(PATH[0:2])) if f[-4:] == '.tif']
+files = [f for f in os.listdir(os.path.join(PATH[0], PATH[1], PATH[3])) if f[-4:] == '.tif']
 nFiles = len(files)
 load_settings = False
 # Set file of interest to analyse verbosely (Set settings['verbose'] to True!)
-file_of_interest = 0
+files_of_interest = [0]
 
 #%% Indicate data processing parameters
 if not load_settings:
@@ -51,24 +63,25 @@ if not load_settings:
     settings['save_files'] = True
     settings['parallel_processing'] = False
     settings['nCores'] = 10
+    # Outputs the particle locations as numpy array for easy debugging
+    settings['verbose'] = False
     # Dict with criteria to use to select particles from possible particle
     # locations. Every key contains a list of length Ncriteria, where identical
     # index means identical criterium.
     selection_criteria = {}
-    selection_criteria['property'] = ['Area', 'Area']
+    selection_criteria['property_'] = ['Area', 'Area']
     selection_criteria['value'] = [35, 200]
     selection_criteria['criteria'] = ['greater', 'smaller']
     settings['selection_criteria'] = selection_criteria
 else:
-    if os.path.exist:
+    if os.path.isfile(os.path.join(PATH[0], PATH[2], r'settings.json')):
         settings = json.load(open(os.path.join(PATH[0],
                                                PATH[2],
-                                               r'\settings.json')
+                                               r'settings.json')
                                   , 'x'))
     else:
         print('No settings file present')
         sys.exit()
-        
 #%% Find Particles, below this line no input is required!
 # First, create the folder structure, if not already present
 Pff.check_file_structure(PATH)
@@ -88,13 +101,14 @@ if settings['parallel_processing']:
     ray.get(results)
     ray.shutdown()
 elif settings['verbose']:
-    img = Pff.image_pretreatment(PATH,
-                                 files[file_of_interest],
-                                 settings)
-    particles = Pff.find_serial(img,
-                                PATH,
-                                files[file_of_interest],
-                                settings)
+    for i in files_of_interest:
+        img = Pff.image_pretreatment(PATH,
+                                     files[i],
+                                     settings)
+        particles = Pff.find_serial(img,
+                                    PATH,
+                                    files[i],
+                                    settings)
 else:
     for i in range(nFiles):
         img = Pff.image_pretreatment(PATH,
@@ -108,8 +122,8 @@ else:
 if settings['save_files']:
     settings_json = open(os.path.join(PATH[0],
                                       PATH[2],
-                                      r'settings.json'),
-                         'r+')
+                                      PATH[3],
+                                      r'settings.json'), 'w+')
     json.dump(settings, settings_json, indent=4)
     settings_json.close()
     

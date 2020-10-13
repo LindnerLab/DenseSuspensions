@@ -1,0 +1,40 @@
+{
+    "R": [
+        [
+            19,
+            22
+        ],
+        [
+            26,
+            30
+        ]
+    ],
+    "crop": [
+        0,
+        2303,
+        158,
+        2178
+    ],
+    "thresh_img": 0.536,
+    "thresh_conv": 0.2,
+    "inv_img": true,
+    "div_gauss": true,
+    "save_files": true,
+    "parallel_processing": false,
+    "nCores": 10,
+    "verbose": false,
+    "selection_criteria": {
+        "property_": [
+            "Area",
+            "Area"
+        ],
+        "value": [
+            35,
+            200
+        ],
+        "criteria": [
+            "greater",
+            "smaller"
+        ]
+    }
+}

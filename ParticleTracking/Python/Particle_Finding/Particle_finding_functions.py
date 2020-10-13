@@ -4,12 +4,13 @@ The functions in this file are all part of the particle finding algorithm
 developed by the contributors mentioned below.
 
 Contributors : Lars Kool
-Affiliations : Laboratoire Physiqe et Méchanique des Milieux Hétérogènes
+Affiliations : Laboratoire Physique et Méchanique des Milieux Hétérogènes
 (PMMH), ESPCI, Paris, France
                
 This project has received funding from the European Union’s Horizon 2020
 research and innovation programme under the Marie Skłodowska-Curie grant
-agreement No. 813162               
+agreement No. 813162
+More info on this programme: https://caliper-itn.org/
 """
 
 import os
@@ -45,21 +46,20 @@ def check_file_structure(path):
     """
     if not os.path.isdir(os.path.join(path[0], path[2])):
         os.mkdir(os.path.join(path[0], path[2]))
-        os.mkdir(os.path.join(path[0], ''.join(path[2:4])))
-        os.mkdir(os.path.join(path[0], ''.join(path[2:4]), 'PKL'))
+        os.mkdir(os.path.join(path[0], path[2], path[3]))
+        os.mkdir(os.path.join(path[0], path[2], path[3], 'PKL'))
         print('Output File structure created')
-    elif not os.path.isdir(os.path.join(path[0], ''.join(path[2:4]))):
-        os.mkdir(os.path.join(path[0], ''.join(path[2:4])))
-        os.mkdir(os.path.join(path[0], ''.join(path[2:4]), 'PKL'))
+    elif not os.path.isdir(os.path.join(path[0], path[2], path[3])):
+        os.mkdir(os.path.join(path[0], path[2], path[3]))
+        os.mkdir(os.path.join(path[0], path[2], path[3], 'PKL'))
         print('Output File structure created')
-    elif not os.path.isdir(os.path.join(path[0], ''.join(path[2:4]),
-                                        'PKL')):
-        os.mkdir(os.path.join(path[0], ''.join(path[2:4]), 'PKL'))
+    elif not os.path.isdir(os.path.join(path[0], path[2], path[3], 'PKL')):
+        os.mkdir(os.path.join(path[0], path[2], path[3], 'PKL'))
         print('Output File structure created')
     else:
         print('Output File structure already present')
         
-    if not os.path.isdir(os.path.join(''.join(path[0:2]), path[3])):
+    if not os.path.isdir(os.path.join(path[0], path[1], path[3])):
         print('''Input files not present in the expected folder:
               DIRECTORY\\INPUT\\VERSION)''')
         sys.exit()
@@ -100,17 +100,18 @@ def image_pretreatment(path, fname, settings):
                                        'PKL',
                                        'P1'+fname[0:-4]+'.pkl')):
         crop = np.array(settings['crop'])
-        img = plt.imread(os.path.join(path[0:2],
+        img = plt.imread(os.path.join(path[0],
+                                      path[1],
                                       path[3],
                                       fname))
         img = img[crop[0]:crop[1]][crop[2]:crop[3]]
         # Divide image by gaussian blur of image to correct for lumination
         # differences across the sample
-        if settings['Div_gauss']:
+        if settings['div_gauss']:
             img = img/scipyimage.gaussian_filter(img, sigma=50)
             img = img/np.max(img)
         # Invert the image
-        if settings['Inv_img']:
+        if settings['inv_img']:
             img = 1-img
             
     return img
@@ -155,7 +156,7 @@ def find_serial(img, path, fname, settings):
     nFill = int(np.ceil(np.log10(nTypes)))
     selection_criteria = pd.DataFrame(settings['selection_criteria'])
     # Set all pixels below a threshold to 0 (increase contrast), and pad image
-    img[img < settings['thresh']] = 0
+    img[img < settings['thresh_img']] = 0
     img = np.pad(img, (np.max(radii), np.max(radii)))
     # For each particle type, perform particle convolution to find the centers
     locs_output = []
@@ -181,6 +182,7 @@ def find_serial(img, path, fname, settings):
                                      '.pkl'])
             particles.to_pickle(os.path.join(path[0],
                                              path[2],
+                                             path[3],
                                              'PKL',
                                              out_file_name))
         # Also, output the found centers as array for easy debugging
