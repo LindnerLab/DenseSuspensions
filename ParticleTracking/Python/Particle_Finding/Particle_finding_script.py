@@ -28,60 +28,59 @@ nCores = 10
 
 if not load_settings:
     # Create a settings dict and fill in the values below
-    Settings = {}
+    settings = {}
     
-    Settings['R'] = [[19, 22],[26, 30]] # list of lists of radii of the inner and outer circle used to create an annulus mask, every list is a particle type to detect
-    Settings['Crop'] = [0, 2303, 158, 2178] # x,y coordinates of the top left and bottom right pixel to crop the image (X-TL,Y-TL,X-BR,Y-BR)
-    Settings['thresh_img'] = 0.53618 # Value to threshold the convoluted image (main way to adjust sensitivity of the particle finding algorithm, after the mask has been optimized)
-    Settings['Thresh_conv'] = 0.2
-    Settings['Inv_img'] = True # Invert the image before particle finding
-    Settings['Div_gauss'] = True # Divide image by a coarse gaussian blur of the image (to correct for background lighting)
-
-    SelectionCriteria = {}
-    SelectionCriteria['Property'] = ['Area','Area']
-    SelectionCriteria['Value'] = [35, 200]
-    SelectionCriteria['Criteria'] = ['Greater', 'Smaller']
+    settings['R'] = [[19, 22],[26, 30]] # list of lists of radii of the inner and outer circle used to create an annulus mask, every list is a particle type to detect
+    settings['crop'] = [0, 2303, 158, 2178] # x,y coordinates of the top left and bottom right pixel to crop the image (X-TL,Y-TL,X-BR,Y-BR)
+    settings['thresh_img'] = 0.53618 # Value to threshold the convoluted image (main way to adjust sensitivity of the particle finding algorithm, after the mask has been optimized)
+    settings['thresh_conv'] = 0.2
+    settings['inv_img'] = True # Invert the image before particle finding
+    settings['div_gauss'] = True # Divide image by a coarse gaussian blur of the image (to correct for background lighting)
+    settings['save_files'] = True
+    settings['parallel_processing'] = False
+    settings['nCores'] = 10
     
-    Settings['SelectionCriteria'] = SelectionCriteria
+    selection_criteria = {} # Dict with criteria to use to select particles from possible particle locations. Every key contains a list of length Ncriteria, where identical index means same criteria.
+    selection_criteria['Property'] = ['Area','Area']
+    selection_criteria['Value'] = [35, 200]
+    selection_criteria['criteria'] = ['Greater', 'Smaller']
+    
+    settings['selection_criteria'] = selection_criteria
 else:
     if os.path.exist:
-        Settings = json.load(open(os.path.join(directory,output,r'\Settings.json'),'x'))
+        settings = json.load(open(os.path.join(directory,output,r'\settings.json'),'x'))
+    else:
+        print('No settings file present')
+        quit
 
+# Save settings dict to json file
 if Save_files:
-    Settings_json = open(os.path.join(directory,output,r'Settings.json'),'r+')
-    json.dump(Settings,Settings_json, indent=4)
-    Settings_json.close()
+    settings_json = open(os.path.join(directory,output,r'settings.json'),'r+')
+    json.dump(settings,settings_json, indent=4)
+    settings_json.close()
 
 #%% Find Particles, below this line no input is required!
 
 # First, create the folder structure, if not already present
-Pff.CheckFileStructure(directory, version)
+Pff.check_file_structure(directory, version)
 
-if Parallel_processing:
+if settings['parallel_processing']:
     # Initialize the ray parallel workflow with nCores
     ray.init(num_cpus=nCores)
     # Initialize functions to be executed in parallel, the FindParallel
     # function is just a ray.remote wrapper around the FindSerial function
-    results = [Pff.FindParallel.remote(i, directory, version, output, files[i], Settings) for i in range(302)]
+    results = [Pff.FindParallel.remote(directory, version, output, files[i], settings) for i in range(302)]
     # Execute the parallel functions in parallel the function itself has no
     # output. Data is saved to file directly to avoid memory overflow if
     # Save_files, otherwise data is discarded
     ray.get(results)
     # Shut down the parallel workflow
     ray.shutdown()
-elif verbose:
+elif settings['verbose']:
     i = 0
-    Img = Pff.ImagePretreatment(directory, version, output, files[i], Settings)
-    Particles = Pff.FindSerial(Img, directory, version, output, files[i], Settings, Save_files, verbose)
+    Img = Pff.image_pretreatment(directory, version, output, files[i], settings)
+    Particles = Pff.find_serial(Img, directory, version, output, files[i], settings)
 else:
     i = 0
-    Img = Pff.ImagePretreatment(directory, version, output, files[i], Settings)
-    Pff.FindSerial(Img, directory, version, output, files[i], Settings, Save_files, verbose)
-    
-    # if Settings['Div_gauss']:
-    #     Img = Img/scipyimage.gaussian_filter(Img,sigma=50)
-    #     Img = np.uint16(Img*(39050/1.0245))
-        
-    # if Settings['Inv_img']:
-    #     Img_inv = 2**16 - Img - 1
-    #     Img = Img_inv
+    Img = Pff.image_pretreatment(directory, version, output, files[i], settings)
+    Pff.find_serial(Img, directory, version, output, files[i], settings)
