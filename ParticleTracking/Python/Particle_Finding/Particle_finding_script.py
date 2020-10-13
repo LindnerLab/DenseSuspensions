@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Sep 25 13:30:42 2020
+This is the main script belonging to the particle finding algorith. This
+script 
 
 @author: Lars Kool
 """
@@ -9,7 +10,7 @@ import os
 import sys
 import json
 import ray
-import Particle_finding_functions as Pff
+import particle_finding_functions as Pff
 
 #%% Indicate data locations
 DIRECTORY = r'F:\Lars\Oscillatory Compression\20200820 Soft Particle Oscillation\Avg75_Amp50_Per120_Back25'
