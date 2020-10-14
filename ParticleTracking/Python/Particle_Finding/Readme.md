@@ -22,7 +22,7 @@ pretreatment (the output should be a normalized image).
   previously saved settings dict.
 - Now, one of three processes is started:
     1. If **parallel_processing == True**, all files will be passed to
-    *find_parallel*, and will be processes in parallel on settings\['nCores'\]
+    *find_parallel*, and will be processes in parallel on *settings\['nCores'\]*
     cores.
     1. If **verbose == True**, the files specified by *files_of_interest* will
     be passed to *image_pretreatment* and then to *find_serial* and will be
@@ -30,28 +30,28 @@ pretreatment (the output should be a normalized image).
     centroids will also be returned in *particles*, which is a list of a list
     of numpy arrays, where the index in the top list indicates the image used,
     the index in the sublist indicates the particle type found (given
-    settings\['R'\]), and the first column of the numpy array contains the
+    *settings\['R'\]*), and the first column of the numpy array contains the
     x-coordinates of the particles, and the second column the y-coordinates.
     All coordinates are in pixels, with the origin at the top-left corner of
     the image.
     1. Or if both are False, all images are passed to *find_serial*. Output
-    is only saved if specified in settings\['save_files'\] (not returned as
+    is only saved if specified in settings*\['save_files'\]* (not returned as
     list)
 - The particle finding works as follows:
     1. First, the normalized image is thresholded (where all values below the
     threshold are set to 0, and values above are kept as is), using
-    settings\['thresh_img'\].
+    *settings\['thresh_img'\]*.
     1. Then the appropriate mask is made. The size of the entire mask is
     identical to the image size, and the size of the ROI is indicated by
-    settings\['R'\].
+    *settings\['R'\]*.
     1. After that, the image and mask are FFT'ed, then multiplied, followed
     by an IFFT of the convoluted image.
     1. Following the convolution, the convoluted image is binarized, using
-    settings\['thresh_conv'\] as a threshold
+    *settings\['thresh_conv'\]* as a threshold
     1. Next, possible particle locations are labelled using scipy.measure
     regeionprops.
     1. ROI's are then separated from false positives given
-    settings\['selection_criteria'\].
+    *settings\['selection_criteria'\]*.
     1. The centroid of the ROI's is then determined using regionprops
     weighted_centroid, where each pixel in the ROI is weighted according to
     intensity of the convoluted image.
@@ -59,7 +59,7 @@ pretreatment (the output should be a normalized image).
     the settings given.
     
 # Contributors
-**Contributors** : Lars Kool
+**Contributors** : Lars Kool \n
 **Affiliations** : Laboratoire Physique et Méchanique des Milieux Hétérogènes
 (PMMH), ESPCI, Paris, France
 
