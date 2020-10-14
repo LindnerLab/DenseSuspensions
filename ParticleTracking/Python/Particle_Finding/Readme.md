@@ -70,5 +70,5 @@ research and innovation programme under the Marie Skłodowska-Curie grant
 agreement No. 813162
 
 More info on this programme: https://caliper-itn.org/
-<img src="https://caliperitn.files.wordpress.com/2019/06/cropped-a-13-2.png height=200">
+<img src="https://caliperitn.files.wordpress.com/2019/06/cropped-a-13-2.png" height=200>
 <img src="https://eacea.ec.europa.eu/sites/eacea-site/files/flag_2colors.png" height=200>
