@@ -48,7 +48,7 @@ pretreatment (the output should be a normalized image).
     by an IFFT of the convoluted image.
     1. Following the convolution, the convoluted image is binarized, using
     *settings\['thresh_conv'\]* as a threshold
-    1. Next, possible particle locations are labelled using scipy.measure
+    1. Next, possible particle locagittions are labelled using scipy.measure
     regeionprops.
     1. ROI's are then separated from false positives given
     *settings\['selection_criteria'\]*.
@@ -70,5 +70,5 @@ research and innovation programme under the Marie Skłodowska-Curie grant
 agreement No. 813162
 
 More info on this programme: https://caliper-itn.org/
-![Logo Caliper](https://caliperitn.files.wordpress.com/2019/06/cropped-a-13-2.png)
-<img src="https://eacea.ec.europa.eu/sites/eacea-site/files/flag_2colors.png" width=150>
+<img src="https://caliperitn.files.wordpress.com/2019/06/cropped-a-13-2.png height=200">
+<img src="https://eacea.ec.europa.eu/sites/eacea-site/files/flag_2colors.png" height=200>
