@@ -71,4 +71,4 @@ agreement No. 813162
 
 More info on this programme: https://caliper-itn.org/
 ![Logo Caliper](https://caliperitn.files.wordpress.com/2019/06/cropped-a-13-2.png)
-![Logo EU](https://eacea.ec.europa.eu/sites/eacea-site/files/flag_2colors.png | width=150)
+<img src="https://eacea.ec.europa.eu/sites/eacea-site/files/flag_2colors.png" width=150>
