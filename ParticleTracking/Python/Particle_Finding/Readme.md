@@ -59,7 +59,8 @@ pretreatment (the output should be a normalized image).
     the settings given.
     
 # Contributors
-**Contributors** : Lars Kool \n
+**Contributors** : Lars Kool
+
 **Affiliations** : Laboratoire Physique et Méchanique des Milieux Hétérogènes
 (PMMH), ESPCI, Paris, France
 
@@ -67,5 +68,7 @@ pretreatment (the output should be a normalized image).
 This project has received funding from the European Union’s Horizon 2020
 research and innovation programme under the Marie Skłodowska-Curie grant
 agreement No. 813162
+
 More info on this programme: https://caliper-itn.org/
 ![Logo Caliper](https://caliperitn.files.wordpress.com/2019/06/cropped-a-13-2.png)
+![Logo EU](https://eacea.ec.europa.eu/sites/eacea-site/files/flag_2colors.png)
