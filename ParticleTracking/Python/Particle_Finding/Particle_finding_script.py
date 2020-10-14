@@ -29,14 +29,15 @@ DIRECTORY = r'E:\Lars\Github\DenseSuspensions\ParticleTracking\Python\Particle_F
 VERSION = r'test'
 INPUT = r'RawData'
 OUTPUT = r'Preprocessed'
-PATH = [DIRECTORY, INPUT, OUTPUT, VERSION]
-files = [f for f in os.listdir(os.path.join(PATH[0], PATH[1], PATH[3])) if f[-4:] == '.tif']
-nFiles = len(files)
 load_settings = False
 # Set file of interest to analyse verbosely (Set settings['verbose'] to True!)
 files_of_interest = [0]
 
 #%% Indicate data processing parameters
+PATH = [DIRECTORY, INPUT, OUTPUT, VERSION]
+files = [f for f in os.listdir(os.path.join(PATH[0], PATH[1], PATH[3])) if f[-4:] == '.tif']
+nFiles = len(files)
+
 if not load_settings:
     # Create a settings dict and fill in the values below
     settings = {}
@@ -82,6 +83,7 @@ else:
     else:
         print('No settings file present')
         sys.exit()
+        
 #%% Find Particles, below this line no input is required!
 # First, create the folder structure, if not already present
 Pff.check_file_structure(PATH)
@@ -101,14 +103,15 @@ if settings['parallel_processing']:
     ray.get(results)
     ray.shutdown()
 elif settings['verbose']:
+    particles = []
     for i in files_of_interest:
         img = Pff.image_pretreatment(PATH,
                                      files[i],
                                      settings)
-        particles = Pff.find_serial(img,
-                                    PATH,
-                                    files[i],
-                                    settings)
+        particles = particles.append([Pff.find_serial(img,
+                                                      PATH,
+                                                      files[i],
+                                                      settings)])
 else:
     for i in range(nFiles):
         img = Pff.image_pretreatment(PATH,

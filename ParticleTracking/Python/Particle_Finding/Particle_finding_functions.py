@@ -84,7 +84,7 @@ def image_pretreatment(path, fname, settings):
                      settings)
     fname : String
         Name of the file (including extension)to be preprocessed that can be
-        found in folder: path[0]\\path[1]\\path[3]
+        found in folder: path[0]/path[1]/path[3]
     settings : dict
         Dict with settings to be used in the data analysis. See main particle
         finding script for a detailed explanation of all keys.
@@ -118,13 +118,16 @@ def image_pretreatment(path, fname, settings):
 
 #%%
 def find_serial(img, path, fname, settings):
-    """
+    """ Main particle finding function
+    Returns and/or saves centroids of particles found in img, using settings.
+    This algorithm uses a convolution of the image and a mask fabricated from
+    settings provided in settings to determine the particle locations.
     
-
     Parameters
     ----------
-    img : TYPE
-        DESCRIPTION.
+    img : 2D numpy array of floats
+        All pixel values are expected to be normalized, such that all intensity
+        values are [0-1]
     path : List of strings
         List of foldernames:
             Path[0]: General folder of the data to be analyzed \n
@@ -135,7 +138,7 @@ def find_serial(img, path, fname, settings):
                      settings)
     fname : String
         Name of the file (including extension)to be preprocessed that can be
-        found in folder: path[0]\\path[1]\\path[3]
+        found in folder: path[0]/path[1]/path[3]
     settings : dict
         Dict with settings to be used in the data analysis. See main particle
         finding script for a detailed explanation of all keys.
@@ -208,7 +211,7 @@ def find_parallel(path, fname, settings):
                      settings)
     fname : String
         Name of the file (including extension) to be preprocessed that can be
-        found in folder: path[0]\\path[1]\\path[3]
+        found in folder: path[0]/path[1]/path[3]
     settings : dict
         Dict with settings to be used in the data analysis. See main particle
         finding script for a detailed explanation of all keys.
