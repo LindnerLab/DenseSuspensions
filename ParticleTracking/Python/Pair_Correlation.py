@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Mar 12 10:36:05 2020
-
-@author: Charly
-"""
-
 def pairCorrelationFunction_2D(x, y, S, rMax, dr):
     """Compute the two-dimensional pair correlation function, also known
     as the radial distribution function, for a set of circular particles
