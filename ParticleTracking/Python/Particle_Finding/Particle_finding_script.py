@@ -22,10 +22,14 @@ import os
 import sys
 import json
 import ray
-import particle_finding_functions as Pff
+from check_file_structure import check_file_structure
+from image_pretreatment import image_pretreatment
+from find_serial import find_serial
+from find_parallel import find_parallel
+from visualize_found_particles import visualize_found_particles
 
 #%% Indicate data locations
-DIRECTORY = r'E:\Lars\Github\DenseSuspensions\ParticleTracking\Python\Particle_Finding\test_case'
+DIRECTORY = r'F:\Lars\Oscillatory Compression\20201023 Quasi-static period\Avg75_Amp50_Per480_Back25'
 VERSION = r'test'
 INPUT = r'RawData'
 OUTPUT = r'Preprocessed'
@@ -46,7 +50,7 @@ if not load_settings:
     settings['R'] = [[19, 22], [26, 30]]
     # x,y coordinates of the top left and bottom right pixel to crop the image
     # (X-TL,Y-TL,X-BR,Y-BR)
-    settings['crop'] = [0, 2303, 158, 2178]
+    settings['crop'] = [0, 2303, 150, 2190]
     # Value to threshold the image before convolution (main way to adjust
     # sensitivity of the particle finding algorithm, after the mask has been
     # optimized)
@@ -62,7 +66,7 @@ if not load_settings:
     # background illumination inhomogeneities)
     settings['div_gauss'] = True
     settings['save_files'] = True
-    settings['parallel_processing'] = False
+    settings['parallel_processing'] = True
     settings['nCores'] = 10
     # Outputs the particle locations as numpy array for easy debugging
     settings['verbose'] = False
@@ -86,14 +90,15 @@ else:
         
 #%% Find Particles, below this line no input is required!
 # First, create the folder structure, if not already present
-Pff.check_file_structure(PATH)
+nTypes = len(settings['R'])
+check_file_structure(PATH, nTypes)
 
 if settings['parallel_processing']:
     # Initialize the ray parallel workflow with nCores
-    ray.init(num_cpus=settings['nCores'])
+    ray.init(num_cpus=settings['nCores'], ignore_reinit_error=True)
     # Initialize functions to be executed in parallel, the FindParallel
     # function is just a ray.remote wrapper around the FindSerial function
-    results = [Pff.FindParallel.remote(PATH,
+    results = [find_parallel.remote(PATH,
                                        files[i],
                                        settings)
                for i in range(nFiles)]
@@ -105,19 +110,19 @@ if settings['parallel_processing']:
 elif settings['verbose']:
     particles = []
     for i in files_of_interest:
-        img = Pff.image_pretreatment(PATH,
+        img = image_pretreatment(PATH,
                                      files[i],
                                      settings)
-        particles = particles.append([Pff.find_serial(img,
-                                                      PATH,
-                                                      files[i],
-                                                      settings)])
+        particles.append(find_serial(img,
+                                          PATH,
+                                          files[i],
+                                          settings))
 else:
     for i in range(nFiles):
-        img = Pff.image_pretreatment(PATH,
+        img = image_pretreatment(PATH,
                                      files[i],
                                      settings)
-        Pff.find_serial(img,
+        find_serial(img,
                         PATH,
                         files[i],
                         settings)
@@ -129,4 +134,14 @@ if settings['save_files']:
                                       r'settings.json'), 'w+')
     json.dump(settings, settings_json, indent=4)
     settings_json.close()
+
+if settings['verbose']:
+    settings_verbose = {}
+    settings_verbose['crop'] = [0, 2303, 150, 2190]
+    settings_verbose['div_gauss'] = True
+    settings_verbose['inv_img'] = False
+    img_verbose = image_pretreatment(PATH,
+                                         files[i],
+                                         settings_verbose)
     
+    visualize_found_particles(particles[0], img_verbose, [20.5, 28.])

@@ -10,7 +10,24 @@ Dependencies:
 """
 import numpy as np
 import pandas as pd
-
+import matplotlib.pyplot as plt
+    
+def best_affine_fit(xy_in, xy_out):
+    nNeighbors = xy_in.shape[0]
+    fit_in = np.array([])
+    fit_out = np.array([])
+    for i in range(nNeighbors):
+        x = xy_in[i,0]
+        y = xy_in[i,1]
+        A = np.array([[x,y,1,0,0,0],[0,0,0,x,y,1]])
+        fit_in = np.append(fit_in,A)
+                
+        fit_out = np.append(fit_out,[xy_out[i,0],
+                                     xy_out[i,1]])
+    fit_in = fit_in.reshape((6, 2*nNeighbors), order='F').T
+    fit = np.linalg.lstsq(a=fit_in, b=fit_out, rcond=None)
+    return fit
+    
 def distance(x1, x2, y1, y2):
     """
     Euclidian distance between two points with coordinates [x1[i],y1[i]] and
@@ -133,27 +150,32 @@ def d2min_particle(xy_particle, xy_particle_next,
         Measure of the non-affine displacement of the reference particle
         (xy_particle), with respect to its neighbors (xy_neighbors). The D2min
         is non-dimensionalized using the typical interparticle spacing
-        (avg_distance)
+        (avg_distance).
+        
+    M : 3-by-3 numpy array of floats
+        Best-fit affine matrix used to transform the reference particle. Can
+        be used to calculate deviatoric strains etc.
 
     """
-    if xy_neighbors.size > 0:
-        nNeighbors = xy_neighbors.shape[0]
+    nNeighbors = xy_neighbors.shape[0]
+    if nNeighbors > 1:
         xy_particle = np.append(xy_particle,
                                 np.ones([1, 1])).reshape([1, 3], order='F')
         xy_particle_next = np.append(xy_particle_next, np.ones([1, 1])
                                      ).reshape([1, 3], order='F')
-        xy_neighbors = np.append(xy_neighbors.transpose(), np.ones([nNeighbors, 1])
+        xy_neighbors = np.append(xy_neighbors.T, np.ones([nNeighbors, 1])
                                  ).reshape([nNeighbors, 3], order='F')
-        xy_neighbors_next = np.append(xy_neighbors_next.transpose(),
+        xy_neighbors_next = np.append(xy_neighbors_next.T,
                                       np.ones([nNeighbors, 1])
                                       ).reshape([nNeighbors, 3], order='F')
         
         try:
-            M = np.linalg.lstsq(xy_neighbors, xy_neighbors_next, rcond=None)
-            xy_neighbors_transformed = np.dot(M[0].transpose(),
-                                              xy_neighbors.transpose()).transpose()
-            xy_particle_transformed = np.dot(M[0].transpose(),
-                                             xy_particle.transpose()).transpose()
+            fit = best_affine_fit(xy_neighbors, xy_neighbors_next)
+            M = np.array([[fit[0][0],fit[0][3],0],[fit[0][1],fit[0][4],0],[fit[0][2],fit[0][5],1]])
+            xy_neighbors_transformed = np.dot(M.T,
+                                              xy_neighbors.T).T
+            xy_particle_transformed = np.dot(M.T,
+                                             xy_particle.T).T
             
             Rij_next = np.linalg.norm(xy_neighbors_next-xy_particle_next,
                                       ord=2, axis=1) # R_ij(t+dt)
@@ -163,9 +185,63 @@ def d2min_particle(xy_particle, xy_particle_next,
             d2min = np.sum(np.square(Rij_next-Rij_transformed))/(nNeighbors*avg_distance**2)
         except:
             d2min = float('NaN')
+            M = np.empty((3,3))
+            M.fill(np.nan)
     else:
         d2min = float('NaN')
-    return d2min
+        M = np.empty((3,3))
+        M.fill(np.nan)
+        
+    if d2min > 500:
+        test=1
+    return d2min, M
+
+def deviatoric_strain(M):
+    strain_Lagrangian = 0.5*(np.dot(M, M.T)-np.identity(3))
+    hydrostatic_invariant = 0.5*np.trace(strain_Lagrangian)
+    strain_deviatoric = np.sqrt(0.5*np.trace(strain_Lagrangian
+                                             -np.dot(hydrostatic_invariant,
+                                                     np.identity(3)))**2)
+    return strain_deviatoric
 
 if __name__ == '__main__':
     pass
+    plt.figure(dpi=500)
+    plt.plot(xy_particle_next[:, 0], xy_particle_next[:, 1],
+              linestyle='none',
+              marker='o',
+              markersize=5,
+              alpha=0.5,
+              markerfacecolor='blue')
+    plt.plot(xy_particle_transformed[:, 0], xy_particle_transformed[:, 1],
+              linestyle='none',
+              marker='o',
+              markersize=5,
+              alpha=0.5,
+              markerfacecolor='blue')
+    plt.plot(xy_neighbors_transformed[:, 0], xy_neighbors_transformed[:, 1],
+              linestyle='none',
+              marker='o',
+              markersize=5,
+              alpha=0.5,
+              markerfacecolor='green')
+    plt.plot(xy_neighbors_next[:, 0], xy_neighbors_next[:, 1],
+              linestyle='none',
+              marker='o',
+              markersize=5,
+              alpha=0.5,
+              markerfacecolor='red')
+    # plt.plot(xy_neighbors[:, 0], xy_neighbors[:, 1],
+    #           linestyle='none',
+    #           marker='o',
+    #           markersize=5,
+    #           alpha=0.5,
+    #           markerfacecolor='orange')
+    # plt.plot(test3[:, 0], test3[:, 1],
+    #           linestyle='none',
+    #           marker='o',
+    #           markersize=5,
+    #           alpha=0.5,
+    #           markerfacecolor='purple')
+    plt.show()
+    

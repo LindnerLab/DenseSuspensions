@@ -11,14 +11,20 @@ Dependencies:
     - Numpy
     - neighboringElements
 
-@author: Lars Kool
+Contributors : Lars Kool
+Affiliations : Laboratoire Physique et Méchanique des Milieux Hétérogènes
+(PMMH), ESPCI, Paris, France
+               
+This project has received funding from the European Union’s Horizon 2020
+research and innovation programme under the Marie Skłodowska-Curie grant
+agreement No. 813162
+More info on this programme: https://caliper-itn.org/
 """
-def trackRepair(tracked, maxMissing, nFiles, minLength):
-    import pandas as pd
-    import numpy as np
-    from Neighboring_elements import neighboringElements
-    import time
-    
+import pandas as pd
+import numpy as np
+from neighboring_elements import neighboring_elements
+
+def track_repair(tracked, maxMissing, nFiles, minLength):  
     # Determine the length of each found track
     track_lengths = tracked.particle.value_counts()
     track_lengths = track_lengths.sort_index()
@@ -76,7 +82,7 @@ def trackRepair(tracked, maxMissing, nFiles, minLength):
             missing = missing[missing == True].index
             
             if len(missing) > 0:
-                missing_grouped = neighboringElements(missing)
+                missing_grouped = neighboring_elements(missing)
             
                 LengthMissing = [len(missing_grouped[j]) for j in range(len(missing_grouped))]
                     

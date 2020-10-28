@@ -10,11 +10,18 @@ agreement No. 813162
 More info on this programme: https://caliper-itn.org/
 """
 
-from track_particles import track_particles
-
-datapath = r'F:\Lars\Oscillatory Compression\20201023 Quasi-static period\Avg75_Amp50_Per240_Back25\Preprocessed\V1'
-dataFormat = 'pkl'
-minLength = 550
-search_range = 10
-
-track_particles(datapath, dataFormat, minLength, search_range)
+def neighboring_elements(matrix):
+    matrix = list(matrix)
+    result = []
+    temp = [matrix[0]]
+    last = matrix[0]
+    for i in range(1,len(matrix)):
+        if  matrix[i] - 1 == last:
+            temp.append(matrix[i])
+        else:
+            result.append(temp)
+            temp = [matrix[i]]
+        last = matrix[i]
+        
+    result.append(temp)
+    return result
