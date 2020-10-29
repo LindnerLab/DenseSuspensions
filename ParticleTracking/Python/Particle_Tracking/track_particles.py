@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+Author Information
+------------------
 Contributors : Lars Kool
 Affiliations : Laboratoire Physique et Méchanique des Milieux Hétérogènes
 (PMMH), ESPCI, Paris, France

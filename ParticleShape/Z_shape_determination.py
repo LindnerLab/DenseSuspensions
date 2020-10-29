@@ -52,6 +52,7 @@ if __name__ == '__main__':
     # around offset
     Img = np.zeros([2304,2304,nFiles])
     Avg_I = np.zeros([len(bins)-1,nFiles])
+    r_particles = np.zeros([nFiles])
     for i in range(0,nFiles):
         Img[:,:,i] = plt.imread(path+files[i])
         # Create meshgrid for cart -> pol conversion, and subtract the centoid of the ROI
@@ -61,11 +62,13 @@ if __name__ == '__main__':
         # Convert the xy positions of the pixels to polar coordinates
         [r, phi] = cart2pol(xv, yv)
         Avg_I[:,i] = radialAvg(r, Img[:, :, i], bins).reshape(len(bins)-1)
+        r_particles[i] = np.argmin(Avg_I[:,i])
+        
     
-    # plt.figure(dpi=500)
-    # plt.plot(bins[1:]*pixel_size,Avg_I[:,0])
-    # plt.xlabel(r'r $(\mu m)$')
-    # plt.ylabel('I (a.u.)')
+    plt.figure(dpi=500)
+    plt.plot(bins[1:]*pixel_size,Avg_I[:,2])
+    plt.xlabel(r'r $(\mu m)$')
+    plt.ylabel('I (a.u.)')
     
 
     
