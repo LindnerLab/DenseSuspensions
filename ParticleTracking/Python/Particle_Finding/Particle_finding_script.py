@@ -29,11 +29,11 @@ from find_parallel import find_parallel
 from visualize_found_particles import visualize_found_particles
 
 #%% Indicate data locations
-DIRECTORY = r'F:\Lars\Oscillatory Compression\20201023 Quasi-static period\Avg75_Amp50_Per480_Back25'
-VERSION = r'test'
+DIRECTORY = r'F:\Lars\Oscillatory Compression\20201103 Creep\Decompression_125Start_26End_25Back'
+VERSION = r'V1'
 INPUT = r'RawData'
 OUTPUT = r'Preprocessed'
-load_settings = False
+load_settings = True
 # Set file of interest to analyse verbosely (Set settings['verbose'] to True!)
 files_of_interest = [0]
 
@@ -69,7 +69,7 @@ if not load_settings:
     settings['parallel_processing'] = True
     settings['nCores'] = 10
     # Outputs the particle locations as numpy array for easy debugging
-    settings['verbose'] = False
+    settings['verbose'] = True
     # Dict with criteria to use to select particles from possible particle
     # locations. Every key contains a list of length Ncriteria, where identical
     # index means identical criterium.
@@ -79,11 +79,11 @@ if not load_settings:
     selection_criteria['criteria'] = ['greater', 'smaller']
     settings['selection_criteria'] = selection_criteria
 else:
-    if os.path.isfile(os.path.join(PATH[0], PATH[2], r'settings.json')):
+    if os.path.isfile(os.path.join(PATH[0], PATH[2], VERSION, r'settings.json')):
         settings = json.load(open(os.path.join(PATH[0],
-                                               PATH[2],
-                                               r'settings.json')
-                                  , 'x'))
+                                 PATH[2],
+                                 VERSION,
+                                 r'settings.json')))
     else:
         print('No settings file present')
         sys.exit()
