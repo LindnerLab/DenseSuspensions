@@ -34,9 +34,9 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
-def visualize_found_particles(particles, img, r):
+def visualize_found_particles(particles, img, r, dpi=500):
     patches = []
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(dpi=500)
     ax.imshow(img, cmap='gray')
     color = ['red', 'blue']
     for i in range(len(particles)):

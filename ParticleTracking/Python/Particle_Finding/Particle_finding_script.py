@@ -29,13 +29,13 @@ from find_parallel import find_parallel
 from visualize_found_particles import visualize_found_particles
 
 #%% Indicate data locations
-DIRECTORY = r'F:\Lars\Oscillatory Compression\20201103 Creep\Decompression_125Start_26End_25Back'
+DIRECTORY = r'E:\Lars\Oscillatory Compression\20201103 Creep\test'
 VERSION = r'V1'
 INPUT = r'RawData'
 OUTPUT = r'Preprocessed'
-load_settings = True
+load_settings = False
 # Set file of interest to analyse verbosely (Set settings['verbose'] to True!)
-files_of_interest = [0]
+files_of_interest = [0,1]
 
 #%% Indicate data processing parameters
 PATH = [DIRECTORY, INPUT, OUTPUT, VERSION]
@@ -66,7 +66,7 @@ if not load_settings:
     # background illumination inhomogeneities)
     settings['div_gauss'] = True
     settings['save_files'] = True
-    settings['parallel_processing'] = True
+    settings['parallel_processing'] = False
     settings['nCores'] = 10
     # Outputs the particle locations as numpy array for easy debugging
     settings['verbose'] = True
@@ -140,8 +140,10 @@ if settings['verbose']:
     settings_verbose['crop'] = [0, 2303, 150, 2190]
     settings_verbose['div_gauss'] = True
     settings_verbose['inv_img'] = False
-    img_verbose = image_pretreatment(PATH,
+    particles[1][0][:,1] = particles[1][0][:,1] * 1.00587
+    particles[1][1][:,1] = particles[1][1][:,1] * 1.00587
+    for i in range(len(files_of_interest)):
+        img_verbose = image_pretreatment(PATH,
                                          files[i],
                                          settings_verbose)
-    
-    visualize_found_particles(particles[0], img_verbose, [20.5, 28.])
+        visualize_found_particles(particles[i], img_verbose, [20.5, 28.], dpi=500)
