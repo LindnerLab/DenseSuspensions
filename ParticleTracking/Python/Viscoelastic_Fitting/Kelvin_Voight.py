@@ -36,12 +36,9 @@ def two_timescale_decompression(t, a, b, c, d):
 def two_timescale_decompression_drift(t, a, b, c, d, e, f):
     return a * np.exp(-b*t) + c * np.exp(-d*t) + e*t + f
 
-tracked_compressed = pd.read_pickle(r'G:\Lars\Oscillatory Compression\20201103 Creep\Compression_26Start_125End_25Back\Preprocessed\V1\tracked.pkl')
-tracked_decompressed = pd.read_pickle(r'G:\Lars\Oscillatory Compression\20201103 Creep\Decompression_125Start_26End_25Back\Preprocessed\V1\tracked.pkl')
-# tracked_compressed_1 = pd.read_pickle(r'G:\Lars\Oscillatory Compression\20201103 Creep\Compression_26Start_125End_25Back\Preprocessed\V2\tracked.pkl')
-# tracked_decompressed_1 = pd.read_pickle(r'G:\Lars\Oscillatory Compression\20201103 Creep\Decompression_125Start_26End_25Back\Preprocessed\V2\tracked.pkl')
-# tracked_compressed_2 = pd.read_pickle(r'G:\Lars\Oscillatory Compression\20201103 Creep\Compression_26Start_125End_25Back\Preprocessed\V3\tracked.pkl')
-# tracked_decompressed_2 = pd.read_pickle(r'G:\Lars\Oscillatory Compression\20201103 Creep\Decompression_125Start_26End_25Back\Preprocessed\V3\tracked.pkl')
+tracked_compressed = pd.read_pickle(r'E:\Lars\Oscillatory Compression\20201103 Creep\Compression_26Start_125End_25Back\Preprocessed\V1\tracked.pkl')
+tracked_decompressed = pd.read_pickle(r'E:\Lars\Oscillatory Compression\20201103 Creep\Decompression_125Start_26End_25Back\Preprocessed\V1\tracked.pkl')
+
 nParticles_compressed = len(tracked_compressed .particle.unique())
 nParticles_decompressed = len(tracked_compressed .particle.unique())
 nFrames = len(tracked_compressed.frame.unique())
