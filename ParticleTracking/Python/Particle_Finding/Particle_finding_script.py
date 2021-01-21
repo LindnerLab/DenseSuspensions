@@ -29,7 +29,7 @@ from find_parallel import find_parallel
 from visualize_found_particles import visualize_found_particles
 
 #%% Indicate data locations
-DIRECTORY = r'E:\Lars\Oscillatory Compression\20201103 Creep\test'
+DIRECTORY = r'G:\Lars\Step Stress\20201130 Compression Decompression\Stress175_35_25Back'
 VERSION = r'V1'
 INPUT = r'RawData'
 OUTPUT = r'Preprocessed'
@@ -50,7 +50,7 @@ if not load_settings:
     settings['R'] = [[19, 22], [26, 30]]
     # x,y coordinates of the top left and bottom right pixel to crop the image
     # (X-TL,Y-TL,X-BR,Y-BR)
-    settings['crop'] = [0, 2303, 150, 2190]
+    settings['crop'] = [0, 2303, 195, 2230]
     # Value to threshold the image before convolution (main way to adjust
     # sensitivity of the particle finding algorithm, after the mask has been
     # optimized)
@@ -66,10 +66,10 @@ if not load_settings:
     # background illumination inhomogeneities)
     settings['div_gauss'] = True
     settings['save_files'] = True
-    settings['parallel_processing'] = False
-    settings['nCores'] = 10
+    settings['parallel_processing'] = True
+    settings['nCores'] = 5
     # Outputs the particle locations as numpy array for easy debugging
-    settings['verbose'] = True
+    settings['verbose'] = False
     # Dict with criteria to use to select particles from possible particle
     # locations. Every key contains a list of length Ncriteria, where identical
     # index means identical criterium.
@@ -136,14 +136,8 @@ if settings['save_files']:
     settings_json.close()
 
 if settings['verbose']:
-    settings_verbose = {}
-    settings_verbose['crop'] = [0, 2303, 150, 2190]
-    settings_verbose['div_gauss'] = True
-    settings_verbose['inv_img'] = False
-    particles[1][0][:,1] = particles[1][0][:,1] * 1.00587
-    particles[1][1][:,1] = particles[1][1][:,1] * 1.00587
     for i in range(len(files_of_interest)):
         img_verbose = image_pretreatment(PATH,
                                          files[i],
-                                         settings_verbose)
+                                         settings)
         visualize_found_particles(particles[i], img_verbose, [20.5, 28.], dpi=500)

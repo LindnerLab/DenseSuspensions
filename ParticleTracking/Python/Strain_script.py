@@ -58,12 +58,13 @@ def calc_strain_rate(tracked, Cauchy=False, Hencky=False, direction='y', dt=1, f
     return tracked
 
 if __name__ == '__main__':
-    path = r'F:\Lars\Oscillatory Compression\20201103 Creep\Compression_26Start_125End_25_Back'
+    path = r'F:\Lars\Oscillatory Compression\20201103 Creep\Compression_26Start_125End_25Back'
+    file = r'Preprocessed\V2\tracked.pkl'
     
-    tracked = pd.read_pickle(os.path.join(path, r'Preprocessed\V1\tracked.pkl'))
+    tracked = pd.read_pickle(os.path.join(path, file))
     nParticles = len(tracked.particle.unique())
     nFrames = len(tracked.frame.unique())
     
     tracked = calc_strain(tracked, Cauchy=True, Hencky=True,direction='y')
     tracked = calc_strain_rate(tracked, Cauchy=True, Hencky=True, dt=2, framerate=0.25, no_overwrite=False)
-    tracked.to_pickle(os.path.join(path, r'Preprocessed\V1\tracked.pkl'))
+    tracked.to_pickle(os.path.join(path, file))
