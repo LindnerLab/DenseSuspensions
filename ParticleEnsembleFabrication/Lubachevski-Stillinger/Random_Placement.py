@@ -15,10 +15,12 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from distance_to_neighbors import distance_to_neighbors
 from neighboring_particles import neighboring_particles
+from pair_correlation_function import pairCorrelationFunction_2D
+from visualize_found_particles import visualize_found_particles
 
 
 class particles:
-    def __init__(self, xmax, ymax, R, N, k_wall, k_particle, T):
+    def __init__(self, xmax, ymax, R, N, k_wall, k_particle):
         self.xmax = xmax
         self.ymax = ymax
         self.pos = np.array([np.random.rand(np.sum(N)) * xmax,
@@ -113,45 +115,75 @@ class particles:
 
 
 if __name__ == '__main__':
-    Nparticles = [1500, 1000]
-    Rparticles = [0.03, 0.045]
-    Ncycles = 100000
-    length = 30
-    width = 5
+    Nparticles = [20]
+    Rparticles = [0.03]
+    length = 1
+    width = 1
     cutoff = 0.15
+    dr = 0.01
     dt = 0.0002
-    k_particle = 10000
-    k_wall = 10000
-    T = 10
+    k_particle = 1000
+    k_wall = 1000000
+    T = 1
+    
+    """
+    No user input required below this point
+    """
 
-    trajectory = np.zeros((Ncycles, np.sum(Nparticles), 2))
-    Ekin = np.array([])
-    Epot = np.array([])
-    Etot = np.array([])
-    i = 0
-
-    packing = particles(length, width, Rparticles, Nparticles, k_wall, k_particle, T)
+    packing = particles(length, width, Rparticles, Nparticles, k_wall, k_particle)
     packing.initial_velocity()
     packing.update_neighbors(cutoff)
 
-    for i in range(10):
-        for j in range(10000):
-            if j % 100 == 0:
-                packing.update_neighbors(cutoff)
-                print(str((i * j + j) * 100 / Ncycles) + '% done')
+    Ekin = np.array([0])
+    Epot = np.array([0])
+    Etot = np.array([0])
+    phi = np.array([0])
+    packings = []
+    r = []
+    i = 0
 
-            packing.update_position(dt)
-            packing.update_force()
-            packing.update_acceleration()
-            packing.update_velocity(dt)
-            packing.update_energies()
-            Ekin = np.concatenate([Ekin, [packing.Ekin]])
-            Epot = np.concatenate([Epot, [packing.Epot]])
-            Etot = np.concatenate([Etot, [packing.Etot]])
+    while packing.Epot < 1000:
+        l = length + 2 * np.mean(packing.r)
+        w = width + 2 * np.mean(packing.r)
+        phi = np.concatenate([phi, [np.sum(packing.r**2 * np.pi) / (l * w)]])
+        packing.update_position(dt)
+        packing.update_force()
+        packing.update_acceleration()
+        packing.update_velocity(dt)
+        packing.update_energies()
+        Ekin = np.concatenate([Ekin, [packing.Ekin]])
+        Epot = np.concatenate([Epot, [packing.Epot]])
+        Etot = np.concatenate([Etot, [packing.Etot]])
 
-            if j % 1000 == 0:
-                packing.v = packing.v / np.sqrt(packing.Ekin / Ekin[0])
-        packing.r = packing.r + packing.r / (i + 1)
+        if i % 100 == 0:
+            packing.update_neighbors(2 * np.max(packing.r))
+            print(f'Ekin={Ekin[-1]:.2f}, Epot={Epot[-1]:.2f}, phi={phi[-1]:.2f}')
+            packing.v = packing.v / np.sqrt(Ekin[-1] / T)
 
-plt.figure(dpi=500)
-plt.plot(Ekin)
+        if i % 20000 == 0:
+            packing.r = packing.r + dr
+            packings.append(packing.pos)
+            r.append(packing.r)
+
+        i += 1
+
+    plt.figure(dpi=500)
+    plt.plot(Ekin)
+
+    i = 9
+    patches = []
+    fig, ax = plt.subplots(dpi=500)
+    color = ['red']
+    for x, y, radius in zip(packings[i][:, 0], packings[i][:, 1], r[i]):
+        circle = mpl.patches.Circle((x, y), radius,
+                                    facecolor='r',
+                                    alpha=0.4)
+        patches.append(circle)
+    p = mpl.collections.PatchCollection(patches, match_original=True)
+    ax.add_collection(p)
+    ax.set_aspect('equal', 'box')
+    # ax.get_xaxis().set_visible(False)
+    # ax.get_yaxis().set_visible(False)
+    plt.xlim([-np.mean(r[i]), 1 + np.mean(r[i])])
+    plt.ylim([-np.mean(r[i]), 1 + np.mean(r[i])])
+    plt.show()
