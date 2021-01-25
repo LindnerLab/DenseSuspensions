@@ -107,7 +107,7 @@ class particles:
         Epot = np.zeros([self.Ntot, ])
         for i, force in enumerate(self.forces):
             dx = np.divide(force[:, 0:2], force[:, 2, None])
-            Epot[i] = 0.5 * np.sum(force[:, 2] * dx[:, 0:1] ** 2)
+            Epot[i] = 0.25 * np.sum(abs(force[:, 2, None]) * (dx[:, 0:2] ** 2))
         self.Epot = np.sum(Epot)
         self.Etot = self.Ekin + self.Epot
 
@@ -118,8 +118,8 @@ if __name__ == '__main__':
     Ncycles = 100000
     length = 30
     width = 5
-    cutoff = 0.03
-    dt = 0.0001
+    cutoff = 0.15
+    dt = 0.0002
     k_particle = 10000
     k_wall = 10000
     T = 10
@@ -134,28 +134,24 @@ if __name__ == '__main__':
     packing.initial_velocity()
     packing.update_neighbors(cutoff)
 
-    while i < Ncycles:
-        if i % 1000 == 0:
-            packing.update_neighbors(cutoff)
-            print(str(i*100/Ncycles) + '% done')
-        packing.update_position(dt)
-        packing.update_force()
-        packing.update_acceleration()
-        packing.update_velocity(dt)
-        packing.update_energies()
-        Ekin = np.concatenate([Ekin, [packing.Ekin]])
-        Epot = np.concatenate([Epot, [packing.Epot]])
-        Etot = np.concatenate([Etot, [packing.Etot]])
-        trajectory[i, :, :] = packing.pos
-        F = packing.forces
-        Fsum = packing.Fsum
-        v = packing.v
-        pos = packing.pos
-        i = i + 1
+    for i in range(10):
+        for j in range(10000):
+            if j % 100 == 0:
+                packing.update_neighbors(cutoff)
+                print(str((i * j + j) * 100 / Ncycles) + '% done')
 
-    plt.figure(dpi=500)
-    ax = plt.subplot(111)
-    for i in range(np.sum(Nparticles)):
-        ax.plot(trajectory[:, i, 0], trajectory[:, i, 1])
-    plt.xlim([-0.1*length, 1.1*length])
-    plt.ylim([-0.1*width, 1.1*width])
+            packing.update_position(dt)
+            packing.update_force()
+            packing.update_acceleration()
+            packing.update_velocity(dt)
+            packing.update_energies()
+            Ekin = np.concatenate([Ekin, [packing.Ekin]])
+            Epot = np.concatenate([Epot, [packing.Epot]])
+            Etot = np.concatenate([Etot, [packing.Etot]])
+
+            if j % 1000 == 0:
+                packing.v = packing.v / np.sqrt(packing.Ekin / Ekin[0])
+        packing.r = packing.r + packing.r / (i + 1)
+
+plt.figure(dpi=500)
+plt.plot(Ekin)
