@@ -131,9 +131,11 @@ if __name__ == '__main__':
     No user input required below this point
     """
 
-    packing = particles(length, width, Rparticles, Nparticles, k_wall/10, k_particle/10, T)
+    packing = particles(length, width, Rparticles, Nparticles, k_wall, k_particle, T)
     packing.initial_velocity()
     packing.update_neighbors(cutoff)
+    packing.update_force()
+    packing.update_energies()
 
     Ekin = np.array([])
     Epot = np.array([])
@@ -155,8 +157,6 @@ if __name__ == '__main__':
             packing.v = packing.v / np.sqrt(packing.Ekin / T)
 
         i += 1
-    packing.k_particle = packing.k_particle*10
-    packing.k_wall = packing.k_wall*10
     
     i = 0
     cont = True
@@ -186,28 +186,28 @@ if __name__ == '__main__':
         packing.r = packing.r + r[0]/100000
         i += 1
 
-    # for i in range(len(r)):
-    #     patches = []
-    #     fig, ax = plt.subplots(dpi=500)
-    #     color = ['red']
-    #     for x, y, radius in zip(packings[i][:, 0], packings[i][:, 1], r[i]):
-    #         r_temp = np.mean(radius)
-    #         circle = mpl.patches.Circle((x, y), radius,
-    #                                     facecolor='r',
-    #                                     alpha=0.4)
-    #         patches.append(circle)
-    #     # rectangle = mpl.patches.Rectangle([-r_temp, -r_temp], 1 + 2*r_temp, 1 + 2*r_temp, angle=0,
-    #     #                                   linestyle='--',
-    #     #                                   edgecolor='grey',
-    #     #                                   facecolor='none')
-    #     # patches.append(rectangle)
-    #     p = mpl.collections.PatchCollection(patches, match_original=True)
-    #     ax.add_collection(p)
-    #     ax.set_aspect('equal', 'box')
-    #     plt.xlim([0, length])
-    #     plt.ylim([0, width])
-    #     plt.text(0.79*length, 0.95*width, '$\phi$={:.3f}'.format(phi[2000*i+1]))
-    #     plt.show()
+    for i in range(len(r)):
+        patches = []
+        fig, ax = plt.subplots(dpi=500)
+        color = ['red']
+        for x, y, radius in zip(packings[i][:, 0], packings[i][:, 1], r[i]):
+            r_temp = np.mean(radius)
+            circle = mpl.patches.Circle((x, y), radius,
+                                        facecolor='r',
+                                        alpha=0.4)
+            patches.append(circle)
+        # rectangle = mpl.patches.Rectangle([-r_temp, -r_temp], 1 + 2*r_temp, 1 + 2*r_temp, angle=0,
+        #                                   linestyle='--',
+        #                                   edgecolor='grey',
+        #                                   facecolor='none')
+        # patches.append(rectangle)
+        p = mpl.collections.PatchCollection(patches, match_original=True)
+        ax.add_collection(p)
+        ax.set_aspect('equal', 'box')
+        plt.xlim([0, length])
+        plt.ylim([0, width])
+        plt.text(0.79*length, 0.95*width, '$\phi$={:.3f}'.format(phi[2000*i+1]))
+        plt.show()
         
         
         
