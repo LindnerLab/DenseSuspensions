@@ -20,7 +20,7 @@ from visualize_found_particles import visualize_found_particles
 
 
 class particles:
-    def __init__(self, xmax, ymax, R, N, k_wall, k_particle):
+    def __init__(self, xmax, ymax, R, N, k_wall, k_particle, T):
         self.xmax = xmax
         self.ymax = ymax
         self.pos = np.array([np.random.rand(np.sum(N)) * xmax,
@@ -40,10 +40,12 @@ class particles:
         self.Epot = 0
         self.Ekin = 0
         self.Etot = 0
+        self.T = T
 
     def initial_velocity(self):
-        phi = np.random.rand(self.Ntot) * 2 * np.pi
-        self.v = np.array([np.cos(phi), np.sin(phi)]).transpose()
+        v_mag = np.sqrt((2 * self.T) / self.Ntot)
+        v_phi = np.random.rand(self.Ntot) * 2 * np.pi
+        self.v = np.array([np.cos(v_phi), np.sin(v_phi)]).transpose()*v_mag
 
     # Generate a new list of neighbors for each particle. This list does not
     # have to be updated every cycle (frequency depends on the speed and
@@ -130,7 +132,7 @@ if __name__ == '__main__':
     No user input required below this point
     """
 
-    packing = particles(length, width, Rparticles, Nparticles, k_wall, k_particle)
+    packing = particles(length, width, Rparticles, Nparticles, k_wall, k_particle, T)
     packing.initial_velocity()
     packing.update_neighbors(cutoff)
 
@@ -160,7 +162,7 @@ if __name__ == '__main__':
             print(f'Ekin={Ekin[-1]:.2f}, Epot={Epot[-1]:.2f}, phi={phi[-1]:.2f}')
             packing.v = packing.v / np.sqrt(Ekin[-1] / T)
 
-        if i % 20000 == 0:
+        if i % 2000 == 0:
             packing.r = packing.r + dr
             packings.append(packing.pos)
             r.append(packing.r)
@@ -170,20 +172,26 @@ if __name__ == '__main__':
     plt.figure(dpi=500)
     plt.plot(Ekin)
 
-    i = 9
-    patches = []
-    fig, ax = plt.subplots(dpi=500)
-    color = ['red']
-    for x, y, radius in zip(packings[i][:, 0], packings[i][:, 1], r[i]):
-        circle = mpl.patches.Circle((x, y), radius,
-                                    facecolor='r',
-                                    alpha=0.4)
-        patches.append(circle)
-    p = mpl.collections.PatchCollection(patches, match_original=True)
-    ax.add_collection(p)
-    ax.set_aspect('equal', 'box')
-    # ax.get_xaxis().set_visible(False)
-    # ax.get_yaxis().set_visible(False)
-    plt.xlim([-np.mean(r[i]), 1 + np.mean(r[i])])
-    plt.ylim([-np.mean(r[i]), 1 + np.mean(r[i])])
-    plt.show()
+    for i in range(len(r)):
+        patches = []
+        fig, ax = plt.subplots(dpi=500)
+        color = ['red']
+        for x, y, radius in zip(packings[i][:, 0], packings[i][:, 1], r[i]):
+            r_temp = np.mean(radius)
+            circle = mpl.patches.Circle((x, y), radius,
+                                        facecolor='r',
+                                        alpha=0.4)
+            patches.append(circle)
+        rectangle = mpl.patches.Rectangle([-r_temp, -r_temp], 1 + 2*r_temp, 1 + 2*r_temp, angle=0,
+                                          linestyle='--',
+                                          edgecolor='grey',
+                                          facecolor='none')
+        patches.append(rectangle)
+        p = mpl.collections.PatchCollection(patches, match_original=True)
+        ax.add_collection(p)
+        ax.set_aspect('equal', 'box')
+        # ax.get_xaxis().set_visible(False)
+        # ax.get_yaxis().set_visible(False)
+        plt.xlim([-0.5, 1.5])
+        plt.ylim([-0.5, 1.5])
+        plt.show()
