@@ -77,21 +77,21 @@ class particles:
                     forces = np.concatenate([forces, F], axis=0)
 
             # Particle-wall forces
-            if xy_particle[0] < 0:
-                F = -np.array([xy_particle[0] * self.k_wall, 0,
+            if xy_particle[0] < r1:
+                F = -np.array([(xy_particle[0] - r1) * self.k_wall, 0,
                                self.k_wall]).reshape([1, 3])
                 forces = np.concatenate([forces, F], axis=0)
-            elif xy_particle[0] > self.xmax:
-                F = np.array([(self.xmax - xy_particle[0]) * self.k_wall, 0,
+            elif xy_particle[0] > self.xmax - r1:
+                F = np.array([(self.xmax - r1 - xy_particle[0]) * self.k_wall, 0,
                               self.k_wall]).reshape([1, 3])
                 forces = np.concatenate([forces, F], axis=0)
 
-            if xy_particle[1] < 0:
-                F = -np.array([0, xy_particle[1] * self.k_wall,
+            if xy_particle[1] < r1:
+                F = -np.array([0, (xy_particle[1] - r1)* self.k_wall,
                                self.k_wall]).reshape([1, 3])
                 forces = np.concatenate([forces, F], axis=0)
-            elif xy_particle[1] > self.ymax:
-                F = np.array([0, (self.ymax - xy_particle[1]) * self.k_wall,
+            elif xy_particle[1] > self.ymax - r1:
+                F = np.array([0, (self.ymax - r1 - xy_particle[1]) * self.k_wall,
                               self.k_wall]).reshape([1, 3])
                 forces = np.concatenate([forces, F], axis=0)
 
@@ -117,37 +117,51 @@ class particles:
 
 
 if __name__ == '__main__':
-    Nparticles = [20]
-    Rparticles = [0.03]
+    Nparticles = [16, 4]
+    Rparticles = [0.06, 0.09]
     length = 1
     width = 1
     cutoff = 0.15
-    dr = 0.01
     dt = 0.0002
-    k_particle = 1000
-    k_wall = 1000000
+    k_particle = 10000
+    k_wall = 10000000
     T = 1
     
     """
     No user input required below this point
     """
 
-    packing = particles(length, width, Rparticles, Nparticles, k_wall, k_particle, T)
+    packing = particles(length, width, Rparticles, Nparticles, k_wall/10, k_particle/10, T)
     packing.initial_velocity()
     packing.update_neighbors(cutoff)
 
-    Ekin = np.array([0])
-    Epot = np.array([0])
-    Etot = np.array([0])
-    phi = np.array([0])
+    Ekin = np.array([])
+    Epot = np.array([])
+    Etot = np.array([])
+    phi = np.array([])
     packings = []
     r = []
+    
     i = 0
+    while packing.Epot > 0.1 or i > 1E5:
+        packing.update_position(dt)
+        packing.update_force()
+        packing.update_acceleration()
+        packing.update_velocity(dt)
+        packing.update_energies()
+        
+        if i % 10 == 0:
+            packing.update_neighbors(2 * np.max(packing.r))
+            packing.v = packing.v / np.sqrt(packing.Ekin / T)
 
-    while packing.Epot < 1000:
-        l = length + 2 * np.mean(packing.r)
-        w = width + 2 * np.mean(packing.r)
-        phi = np.concatenate([phi, [np.sum(packing.r**2 * np.pi) / (l * w)]])
+        i += 1
+    packing.k_particle = packing.k_particle*10
+    packing.k_wall = packing.k_wall*10
+    
+    i = 0
+    cont = True
+    while cont:
+        phi = np.concatenate([phi, [np.sum(packing.r**2 * np.pi) / (length * width)]])
         packing.update_position(dt)
         packing.update_force()
         packing.update_acceleration()
@@ -156,42 +170,46 @@ if __name__ == '__main__':
         Ekin = np.concatenate([Ekin, [packing.Ekin]])
         Epot = np.concatenate([Epot, [packing.Epot]])
         Etot = np.concatenate([Etot, [packing.Etot]])
-
+        
         if i % 100 == 0:
             packing.update_neighbors(2 * np.max(packing.r))
             print(f'Ekin={Ekin[-1]:.2f}, Epot={Epot[-1]:.2f}, phi={phi[-1]:.2f}')
             packing.v = packing.v / np.sqrt(Ekin[-1] / T)
 
         if i % 2000 == 0:
-            packing.r = packing.r + dr
             packings.append(packing.pos)
             r.append(packing.r)
+            
+        if packing.Epot > 10 or i > 1E6 or phi[i] > 0.83:
+            cont = False
 
+        packing.r = packing.r + r[0]/100000
         i += 1
 
-    plt.figure(dpi=500)
-    plt.plot(Ekin)
-
-    for i in range(len(r)):
-        patches = []
-        fig, ax = plt.subplots(dpi=500)
-        color = ['red']
-        for x, y, radius in zip(packings[i][:, 0], packings[i][:, 1], r[i]):
-            r_temp = np.mean(radius)
-            circle = mpl.patches.Circle((x, y), radius,
-                                        facecolor='r',
-                                        alpha=0.4)
-            patches.append(circle)
-        rectangle = mpl.patches.Rectangle([-r_temp, -r_temp], 1 + 2*r_temp, 1 + 2*r_temp, angle=0,
-                                          linestyle='--',
-                                          edgecolor='grey',
-                                          facecolor='none')
-        patches.append(rectangle)
-        p = mpl.collections.PatchCollection(patches, match_original=True)
-        ax.add_collection(p)
-        ax.set_aspect('equal', 'box')
-        # ax.get_xaxis().set_visible(False)
-        # ax.get_yaxis().set_visible(False)
-        plt.xlim([-0.5, 1.5])
-        plt.ylim([-0.5, 1.5])
-        plt.show()
+    # for i in range(len(r)):
+    #     patches = []
+    #     fig, ax = plt.subplots(dpi=500)
+    #     color = ['red']
+    #     for x, y, radius in zip(packings[i][:, 0], packings[i][:, 1], r[i]):
+    #         r_temp = np.mean(radius)
+    #         circle = mpl.patches.Circle((x, y), radius,
+    #                                     facecolor='r',
+    #                                     alpha=0.4)
+    #         patches.append(circle)
+    #     # rectangle = mpl.patches.Rectangle([-r_temp, -r_temp], 1 + 2*r_temp, 1 + 2*r_temp, angle=0,
+    #     #                                   linestyle='--',
+    #     #                                   edgecolor='grey',
+    #     #                                   facecolor='none')
+    #     # patches.append(rectangle)
+    #     p = mpl.collections.PatchCollection(patches, match_original=True)
+    #     ax.add_collection(p)
+    #     ax.set_aspect('equal', 'box')
+    #     plt.xlim([0, length])
+    #     plt.ylim([0, width])
+    #     plt.text(0.79*length, 0.95*width, '$\phi$={:.3f}'.format(phi[2000*i+1]))
+    #     plt.show()
+        
+        
+        
+        
+        
