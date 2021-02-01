@@ -15,7 +15,6 @@ import pandas as pd
 import time
 import os
 import timeit
-from multiprocessing import Pool, TimeoutError
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from distance_to_neighbors import distance_to_neighbors
@@ -23,7 +22,7 @@ from neighboring_particles import neighboring_particles
 from pair_correlation_function import pairCorrelationFunction_2D
 from visualize_found_particles import visualize_found_particles
 
-
+t = time.time()
 class particles:
     def __init__(self, xmax, ymax, R, N, k_wall, k_particle, T):
         self.xmax = xmax
@@ -62,50 +61,46 @@ class particles:
         self.pos = np.array([self.pos[:, 0] + self.v[:, 0] * dt + 0.5 * self.a[:, 0] * (dt ** 2),
                              self.pos[:, 1] + self.v[:, 1] * dt + 0.5 * self.a[:, 1] * (dt ** 2)]).transpose()
 
-    def update_force(self, i):
-        forces = np.array([0, 0, 1]).reshape([1, 3])
-        xy_particle = self.pos[i, :]
-        xy_neighbors = self.pos[self.neighbors[i]]
-        d_neighbors = distance_to_neighbors(xy_particle, xy_neighbors)
-
-        # Interparticle forces
-        r1 = self.r[i]
-        r2 = self.r[self.neighbors[i]]
-        for j in range(len(self.neighbors[i])):
-            if d_neighbors[j] < (self.r[i] + self.r[self.neighbors[i][j]]):
-                dpos = self.pos[i] - self.pos[self.neighbors[i][j]]
-                Fmag = (d_neighbors[j] - r1 - r2[j]) * self.k_particle
-                F = -np.array([(dpos[0] / d_neighbors[j]) * Fmag,
-                               (dpos[1] / d_neighbors[j]) * Fmag,
-                               self.k_particle]).reshape([1, 3])
+    def update_force(self):
+        for i in range(self.Ntot):
+            forces = np.array([0, 0, 1]).reshape([1, 3])
+            xy_particle = self.pos[i, :]
+            xy_neighbors = self.pos[self.neighbors[i]]
+            d_neighbors = distance_to_neighbors(xy_particle, xy_neighbors)
+    
+            # Interparticle forces
+            r1 = self.r[i]
+            r2 = self.r[self.neighbors[i]]
+            for j in range(len(self.neighbors[i])):
+                if d_neighbors[j] < (self.r[i] + self.r[self.neighbors[i][j]]):
+                    dpos = self.pos[i] - self.pos[self.neighbors[i][j]]
+                    Fmag = (d_neighbors[j] - r1 - r2[j]) * self.k_particle
+                    F = -np.array([(dpos[0] / d_neighbors[j]) * Fmag,
+                                   (dpos[1] / d_neighbors[j]) * Fmag,
+                                   self.k_particle]).reshape([1, 3])
+                    forces = np.concatenate([forces, F], axis=0)
+    
+            # Particle-wall forces
+            if xy_particle[0] < r1:
+                F = -np.array([(xy_particle[0] - r1) * self.k_wall, 0,
+                               self.k_wall]).reshape([1, 3])
                 forces = np.concatenate([forces, F], axis=0)
-
-        # Particle-wall forces
-        if xy_particle[0] < r1:
-            F = -np.array([(xy_particle[0] - r1) * self.k_wall, 0,
-                           self.k_wall]).reshape([1, 3])
-            forces = np.concatenate([forces, F], axis=0)
-        elif xy_particle[0] > self.xmax - r1:
-            F = np.array([(self.xmax - r1 - xy_particle[0]) * self.k_wall, 0,
-                          self.k_wall]).reshape([1, 3])
-            forces = np.concatenate([forces, F], axis=0)
-
-        if xy_particle[1] < r1:
-            F = -np.array([0, (xy_particle[1] - r1)* self.k_wall,
-                           self.k_wall]).reshape([1, 3])
-            forces = np.concatenate([forces, F], axis=0)
-        elif xy_particle[1] > self.ymax - r1:
-            F = np.array([0, (self.ymax - r1 - xy_particle[1]) * self.k_wall,
-                          self.k_wall]).reshape([1, 3])
-            forces = np.concatenate([forces, F], axis=0)
-        return forces
-            
-    def update_force_parallel(self):
-        with Pool(processes=12) as pool:
-            temp_parallel = [pool.apply_async(self.update_force, (i,)) for i in range(self.Ntot)]
-        self.forces = [temp.get() for temp in temp_parallel]
-        # self.Fsum[i, :] = np.sum(self.forces[:, 0:2], axis=0)
-
+            elif xy_particle[0] > self.xmax - r1:
+                F = np.array([(self.xmax - r1 - xy_particle[0]) * self.k_wall, 0,
+                              self.k_wall]).reshape([1, 3])
+                forces = np.concatenate([forces, F], axis=0)
+    
+            if xy_particle[1] < r1:
+                F = -np.array([0, (xy_particle[1] - r1)* self.k_wall,
+                               self.k_wall]).reshape([1, 3])
+                forces = np.concatenate([forces, F], axis=0)
+            elif xy_particle[1] > self.ymax - r1:
+                F = np.array([0, (self.ymax - r1 - xy_particle[1]) * self.k_wall,
+                              self.k_wall]).reshape([1, 3])
+                forces = np.concatenate([forces, F], axis=0)
+                
+            self.forces[i] = forces
+            self.Fsum[i, :] = np.sum(forces[:, 0:2], axis=0)      
 
     def update_acceleration(self):
         self.a = self.a_dt
@@ -126,14 +121,15 @@ class particles:
 
 
 if __name__ == '__main__':
-    # Nparticles = [1500, 1000]
-    # Rparticles = [0.06, 0.09]
-    # length = 30
-    # width = 4.98
-    Nparticles = [20]
-    Rparticles = [0.06]
-    length = 2
-    width = 2
+    Nparticles = [1500, 1000]
+    Rparticles = [0.06, 0.09]
+    length = 30
+    width = 4.98
+    # Nparticles = [100]
+    # Rparticles = [0.06]
+    nCores = 12
+    # length = 2
+    # width = 2
     cutoff = 0.15
     dt = 0.0002
     k_particle = 10000
@@ -142,97 +138,87 @@ if __name__ == '__main__':
     
     """
     No user input required below this point
-    """
-
+    """   
     packing = particles(length, width, Rparticles, Nparticles, k_wall, k_particle, T)
     packing.initial_velocity()
     cutoff = 2.5*np.max([packing.v[:,0]**2 + packing.v[:,1]**2])*dt*100
     packing.update_neighbors(cutoff)
+    packing.update_force()
+    packing.update_energies()
 
-for i in range(packing.Ntot):
-    packing.update_force(i)
-
-    # packing.update_force_parallel()
-    # packing.update_energies()
-
-    # Ekin = np.array([])
-    # Epot = np.array([])
-    # Etot = np.array([])
-    # phi = np.array([])
-    # packings = []
-    # r = []
+    Ekin = np.array([])
+    Epot = np.array([])
+    Etot = np.array([])
+    phi = np.array([])
+    packings = []
+    r = []
     
-    # i = 0
-    # print('Start equilibration')
-    # while packing.Epot > 0.1 or i > 1E5:
-    #     packing.update_position(dt)
-    #     packing.update_force_parallel()
-    #     packing.update_acceleration()
-    #     packing.update_velocity(dt)
-    #     packing.update_energies()
+    i = 0
+    print('Start equilibration')
+    while packing.Epot > 0.1 or i > 1E5:
+        packing.update_position(dt)
+        packing.update_force()
+        packing.update_acceleration()
+        packing.update_velocity(dt)
+        packing.update_energies()
         
-    #     if i % 10 == 0:
-    #         packing.update_neighbors(2 * np.max(packing.r))
-    #         packing.v = packing.v / np.sqrt(packing.Ekin / T)
+        if i % 10 == 0:
+            packing.update_neighbors(2 * np.max(packing.r))
+            packing.v = packing.v / np.sqrt(packing.Ekin / T)
             
-    #     if i % 100 == 0:
-    #         print(f'Epot={packing.Epot:.3f}, equilibrated when Epot < 0.1')
-    #     i += 1
+        if i % 100 == 0:
+            print(f'Epot={packing.Epot:.3f}, equilibrated when Epot < 0.1')
+        i += 1
     
-    # packing.initial_velocity()
-    # i = 0
-    # cont = True
-    # while cont:
-    #     phi = np.concatenate([phi, [np.sum(packing.r**2 * np.pi) / (length * width)]])
-    #     packing.update_position(dt)
-    #     for p in range(packing.Ntot):
-    #         packing.update_force(p)
-    #     packing.update_acceleration()
-    #     packing.update_velocity(dt)
-    #     packing.update_energies()
-    #     Ekin = np.concatenate([Ekin, [packing.Ekin]])
-    #     Epot = np.concatenate([Epot, [packing.Epot]])
-    #     Etot = np.concatenate([Etot, [packing.Etot]])
+    packing.initial_velocity()
+    i = 0
+    cont = True
+    while cont:
+        phi = np.concatenate([phi, [np.sum(packing.r**2 * np.pi) / (length * width)]])
+        packing.update_position(dt)
+        for p in range(packing.Ntot):
+            packing.update_force(p)
+        packing.update_acceleration()
+        packing.update_velocity(dt)
+        packing.update_energies()
+        Ekin = np.concatenate([Ekin, [packing.Ekin]])
+        Epot = np.concatenate([Epot, [packing.Epot]])
+        Etot = np.concatenate([Etot, [packing.Etot]])
         
-    #     if i % 100 == 0:
-    #         packing.update_neighbors(2 * np.max(packing.r))
-    #         print(f'Ekin={Ekin[-1]:.2f}, Epot={Epot[-1]:.2f}, phi={phi[-1]:.2f}')
-    #         packing.v = packing.v / np.sqrt(Ekin[-1] / T)
+        if i % 100 == 0:
+            packing.update_neighbors(2 * np.max(packing.r))
+            print(f'Ekin={Ekin[-1]:.2f}, Epot={Epot[-1]:.2f}, phi={phi[-1]:.2f}')
+            packing.v = packing.v / np.sqrt(Ekin[-1] / T)
 
-    #     if i % 2000 == 0:
-    #         packings.append(packing.pos)
-    #         r.append(packing.r)
+        if i % 2000 == 0:
+            packings.append(packing.pos)
+            r.append(packing.r)
             
-    #     if phi[i] > 0.83:
-    #         cont = False
+        if phi[i] > 0.83:
+            cont = False
 
-    #     packing.r = packing.r + r[0]/30000
-    #     i += 1
+        packing.r = packing.r + r[0]/30000
+        i += 1
 
-    # for i in range(len(r)):
-    #     patches = []
-    #     fig, ax = plt.subplots(dpi=500)
-    #     color = ['red']
-    #     for x, y, radius in zip(packings[i][:, 0], packings[i][:, 1], r[i]):
-    #         r_temp = np.mean(radius)
-    #         circle = mpl.patches.Circle((x, y), radius,
-    #                                     facecolor='r',
-    #                                     alpha=0.4)
-    #         patches.append(circle)
-    #     # rectangle = mpl.patches.Rectangle([-r_temp, -r_temp], 1 + 2*r_temp, 1 + 2*r_temp, angle=0,
-    #     #                                   linestyle='--',
-    #     #                                   edgecolor='grey',
-    #     #                                   facecolor='none')
-    #     # patches.append(rectangle)
-    #     p = mpl.collections.PatchCollection(patches, match_original=True)
-    #     ax.add_collection(p)
-    #     ax.set_aspect('equal', 'box')
-    #     plt.xlim([0, length])
-    #     plt.ylim([0, width])
-    #     plt.text(0.79*length, 0.95*width, '$\phi$={:.3f}'.format(phi[2000*i+1]))
-    #     plt.show()
-        
-        
-        
-        
-        
+    for i in range(len(r)):
+        patches = []
+        fig, ax = plt.subplots(dpi=500)
+        color = ['red']
+        for x, y, radius in zip(packings[i][:, 0], packings[i][:, 1], r[i]):
+            r_temp = np.mean(radius)
+            circle = mpl.patches.Circle((x, y), radius,
+                                        facecolor='r',
+                                        alpha=0.4)
+            patches.append(circle)
+        # rectangle = mpl.patches.Rectangle([-r_temp, -r_temp], 1 + 2*r_temp, 1 + 2*r_temp, angle=0,
+        #                                   linestyle='--',
+        #                                   edgecolor='grey',
+        #                                   facecolor='none')
+        # patches.append(rectangle)
+        p = mpl.collections.PatchCollection(patches, match_original=True)
+        ax.add_collection(p)
+        ax.set_aspect('equal', 'box')
+        plt.xlim([0, length])
+        plt.ylim([0, width])
+        plt.text(0.79*length, 0.95*width, '$\phi$={:.3f}'.format(phi[2000*i+1]))
+        plt.show()
