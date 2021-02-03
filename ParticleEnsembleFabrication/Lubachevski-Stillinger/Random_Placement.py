@@ -176,8 +176,7 @@ if __name__ == '__main__':
     while cont:
         phi = np.concatenate([phi, [np.sum(packing.r**2 * np.pi) / (length * width)]])
         packing.update_position(dt)
-        for p in range(packing.Ntot):
-            packing.update_force(p)
+        packing.update_force()
         packing.update_acceleration()
         packing.update_velocity(dt)
         packing.update_energies()
@@ -186,9 +185,10 @@ if __name__ == '__main__':
         Etot = np.concatenate([Etot, [packing.Etot]])
         
         if i % 100 == 0:
-            packing.update_neighbors(2 * np.max(packing.r))
-            print(f'Ekin={Ekin[-1]:.2f}, Epot={Epot[-1]:.2f}, phi={phi[-1]:.2f}')
-            packing.v = packing.v / np.sqrt(Ekin[-1] / T)
+            # packing.update_neighbors(2 * np.max(packing.r))
+            # print(f'Ekin={Ekin[-1]:.2f}, Epot={Epot[-1]:.2f}, phi={phi[-1]:.2f}')
+            # packing.v = packing.v / np.sqrt(Ekin[-1] / T)
+            packing.initial_velocity()
 
         if i % 2000 == 0:
             packings.append(packing.pos)
