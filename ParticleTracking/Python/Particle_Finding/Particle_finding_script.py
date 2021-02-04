@@ -29,13 +29,13 @@ from find_parallel import find_parallel
 from visualize_found_particles import visualize_found_particles
 
 #%% Indicate data locations
-DIRECTORY = r'G:\Lars\Step Stress\20201130 Compression Decompression\Stress175_35_25Back'
+DIRECTORY = r'E:\Lars\Step Stress\20210127\E10000_High125_Low25_Back25_Per180'
 VERSION = r'V1'
 INPUT = r'RawData'
 OUTPUT = r'Preprocessed'
 load_settings = False
 # Set file of interest to analyse verbosely (Set settings['verbose'] to True!)
-files_of_interest = [0,1]
+files_of_interest = [0]
 
 #%% Indicate data processing parameters
 PATH = [DIRECTORY, INPUT, OUTPUT, VERSION]
@@ -50,7 +50,7 @@ if not load_settings:
     settings['R'] = [[19, 22], [26, 30]]
     # x,y coordinates of the top left and bottom right pixel to crop the image
     # (X-TL,Y-TL,X-BR,Y-BR)
-    settings['crop'] = [0, 2303, 195, 2230]
+    settings['crop'] = [0, 2303, 130, 2180]
     # Value to threshold the image before convolution (main way to adjust
     # sensitivity of the particle finding algorithm, after the mask has been
     # optimized)
@@ -67,7 +67,7 @@ if not load_settings:
     settings['div_gauss'] = True
     settings['save_files'] = True
     settings['parallel_processing'] = True
-    settings['nCores'] = 5
+    settings['nCores'] = 14
     # Outputs the particle locations as numpy array for easy debugging
     settings['verbose'] = False
     # Dict with criteria to use to select particles from possible particle

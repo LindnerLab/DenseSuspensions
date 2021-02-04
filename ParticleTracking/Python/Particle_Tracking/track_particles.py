@@ -5,7 +5,7 @@ Author Information
 Contributors : Lars Kool
 Affiliations : Laboratoire Physique et Méchanique des Milieux Hétérogènes
 (PMMH), ESPCI, Paris, France
-               
+
 This project has received funding from the European Union’s Horizon 2020
 research and innovation programme under the Marie Skłodowska-Curie grant
 agreement No. 813162
@@ -19,13 +19,14 @@ from data_parser import data_parser
 from track_repair import track_repair
 from renumber_particles import renumber_particles
 
+
 def track_particles(datapath, dataFormat, minLength, search_range):
     types = os.listdir(os.path.join(datapath, dataFormat))
     # Import and parse data
     untracked = [data_parser(os.path.join(datapath, dataFormat, type_), dataFormat) for i, type_ in enumerate(types)]
     print('Particles imported')
     # Track the particles
-    tracked_particle = [tp.link_df(particles, search_range, memory=5).sort_values(by=['particle','frame'], ignore_index=True) 
+    tracked_particle = [tp.link_df(particles, search_range, memory=5).sort_values(by=['particle', 'frame'], ignore_index=True)
                         for particles in untracked]
     nFiles = len(tracked_particle[0].frame.unique())
     del untracked
