@@ -152,7 +152,7 @@ if __name__ == '__main__':
     phi = np.array([])
     packings = []
     r = []
-    
+
     i = 0
     print('Start equilibration')
     while packing.Epot > 0.1 or i > 1E5:
@@ -164,12 +164,13 @@ if __name__ == '__main__':
         
         if i % 10 == 0:
             packing.update_neighbors(2 * np.max(packing.r))
-            packing.v = packing.v / np.sqrt(packing.Ekin / T)
+            # packing.v = packing.v / np.sqrt(packing.Ekin / T)
+            packing.initial_velocity()
             
         if i % 100 == 0:
-            print(f'Epot={packing.Epot:.3f}, equilibrated when Epot < 0.1')
+            print(f'Epot = {packing.Epot:.3f}, equilibrated when Epot < 0.1')
         i += 1
-    
+
     packing.initial_velocity()
     i = 0
     cont = True
@@ -183,10 +184,10 @@ if __name__ == '__main__':
         Ekin = np.concatenate([Ekin, [packing.Ekin]])
         Epot = np.concatenate([Epot, [packing.Epot]])
         Etot = np.concatenate([Etot, [packing.Etot]])
-        
+
         if i % 100 == 0:
-            # packing.update_neighbors(2 * np.max(packing.r))
-            # print(f'Ekin={Ekin[-1]:.2f}, Epot={Epot[-1]:.2f}, phi={phi[-1]:.2f}')
+            packing.update_neighbors(2 * np.max(packing.r))
+            print(f'Ekin={Ekin[-1]:.2f}, Epot={Epot[-1]:.2f}, phi={phi[-1]:.2f}')
             # packing.v = packing.v / np.sqrt(Ekin[-1] / T)
             packing.initial_velocity()
 
