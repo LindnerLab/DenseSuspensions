@@ -72,7 +72,13 @@ def find_particles_convolution(img, radius, selection_criteria, threshold, mask)
     # Determine locations of peaks in convoluted image
     particles, fit_vals  = particle_selection(img_conv_bin,
                                               img_conv_norm,
-                                              selection_criteria)
+                                              selection_criteria,
+                                              radius)
     # Correct for offset of the mask (r,r)
     particles = particles - radius
     return particles, fit_vals
+
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+    plt.figure(dpi=500)
+    plt.imshow(img_conv_norm, cmap = 'gray')

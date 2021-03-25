@@ -11,7 +11,7 @@ correct main directory is provided).
 Contributors : Lars Kool
 Affiliations : Laboratoire Physique et Méchanique des Milieux Hétérogènes
 (PMMH), ESPCI, Paris, France
-               
+
 This project has received funding from the European Union’s Horizon 2020
 research and innovation programme under the Marie Skłodowska-Curie grant
 agreement No. 813162
@@ -28,16 +28,16 @@ from find_serial import find_serial
 from find_parallel import find_parallel
 from visualize_found_particles import visualize_found_particles
 
-#%% Indicate data locations
-DIRECTORY = r'E:\Lars\Step Stress\20210127\E10000_High125_Low25_Back25_Per180'
+# %% Indicate data locations
+DIRECTORY = r'E:\Lars\Oscillatory Compression\20210223\Avg125_Amp100_Back25_Per600_C30'
 VERSION = r'V1'
 INPUT = r'RawData'
 OUTPUT = r'Preprocessed'
 load_settings = False
 # Set file of interest to analyse verbosely (Set settings['verbose'] to True!)
-files_of_interest = [0]
+files_of_interest = [184]
 
-#%% Indicate data processing parameters
+# %% Indicate data processing parameters
 PATH = [DIRECTORY, INPUT, OUTPUT, VERSION]
 files = [f for f in os.listdir(os.path.join(PATH[0], PATH[1], PATH[3])) if f[-4:] == '.tif']
 nFiles = len(files)
@@ -50,7 +50,7 @@ if not load_settings:
     settings['R'] = [[19, 22], [26, 30]]
     # x,y coordinates of the top left and bottom right pixel to crop the image
     # (X-TL,Y-TL,X-BR,Y-BR)
-    settings['crop'] = [0, 2303, 130, 2180]
+    settings['crop'] = [0, 2303, 170, 2210]
     # Value to threshold the image before convolution (main way to adjust
     # sensitivity of the particle finding algorithm, after the mask has been
     # optimized)
@@ -65,11 +65,11 @@ if not load_settings:
     # Divide image by a coarse gaussian blur of the image (to correct for
     # background illumination inhomogeneities)
     settings['div_gauss'] = True
-    settings['save_files'] = True
-    settings['parallel_processing'] = True
+    settings['save_files'] = False
+    settings['parallel_processing'] = False
     settings['nCores'] = 14
     # Outputs the particle locations as numpy array for easy debugging
-    settings['verbose'] = False
+    settings['verbose'] = True
     # Dict with criteria to use to select particles from possible particle
     # locations. Every key contains a list of length Ncriteria, where identical
     # index means identical criterium.
@@ -88,7 +88,7 @@ else:
         print('No settings file present')
         sys.exit()
         
-#%% Find Particles, below this line no input is required!
+# %% Find Particles, below this line no input is required!
 # First, create the folder structure, if not already present
 nTypes = len(settings['R'])
 check_file_structure(PATH, nTypes)
@@ -99,9 +99,9 @@ if settings['parallel_processing']:
     # Initialize functions to be executed in parallel, the FindParallel
     # function is just a ray.remote wrapper around the FindSerial function
     results = [find_parallel.remote(PATH,
-                                       files[i],
-                                       settings)
-               for i in range(nFiles)]
+                                    files[i],
+                                    settings)
+               for i in range(nFiles) if files[i] not in os.path.join(PATH[0], PATH[2], PATH[3])]
     # Execute the parallel functions in parallel the function itself has no
     # output. Data is saved to file directly to avoid memory overflow if
     # Save_files, otherwise data is discarded
@@ -117,6 +117,12 @@ elif settings['verbose']:
                                           PATH,
                                           files[i],
                                           settings))
+
+    for i in range(len(files_of_interest)):
+        img_verbose = image_pretreatment(PATH,
+                                         files[files_of_interest[i]],
+                                         settings)
+        visualize_found_particles(particles[i], img_verbose, [20.5, 28.], dpi=500)
 else:
     for i in range(nFiles):
         img = image_pretreatment(PATH,
@@ -134,10 +140,4 @@ if settings['save_files']:
                                       r'settings.json'), 'w+')
     json.dump(settings, settings_json, indent=4)
     settings_json.close()
-
-if settings['verbose']:
-    for i in range(len(files_of_interest)):
-        img_verbose = image_pretreatment(PATH,
-                                         files[i],
-                                         settings)
-        visualize_found_particles(particles[i], img_verbose, [20.5, 28.], dpi=500)
+    

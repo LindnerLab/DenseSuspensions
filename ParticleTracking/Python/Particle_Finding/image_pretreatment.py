@@ -45,24 +45,19 @@ import matplotlib.pyplot as plt
 import scipy.ndimage as scipyimage
 
 def image_pretreatment(path, fname, settings):
-    # Only pretreat image if the image isn't already analyzed
-    if not os.path.isfile(os.path.join(path[0],
-                                       path[2],
-                                       'PKL',
-                                       'P1'+fname[0:-4]+'.pkl')):
-        crop = np.array(settings['crop'])
-        img = plt.imread(os.path.join(path[0],
-                                      path[1],
-                                      path[3],
-                                      fname))
-        img = img[crop[0]:crop[1]][crop[2]:crop[3]]
-        # Divide image by gaussian blur of image to correct for lumination
-        # differences across the sample
-        if settings['div_gauss']:
-            img = img/scipyimage.gaussian_filter(img, sigma=50)
-            img = img/np.max(img)
-        # Invert the image
-        if settings['inv_img']:
-            img = 1-img
+    crop = np.array(settings['crop'])
+    img = plt.imread(os.path.join(path[0],
+                                  path[1],
+                                  path[3],
+                                  fname))
+    img = img[crop[0]:crop[1]][crop[2]:crop[3]]
+    # Divide image by gaussian blur of image to correct for lumination
+    # differences across the sample
+    if settings['div_gauss']:
+        img = img/scipyimage.gaussian_filter(img, sigma=50)
+        img = img/np.max(img)
+    # Invert the image
+    if settings['inv_img']:
+        img = 1-img
             
     return img

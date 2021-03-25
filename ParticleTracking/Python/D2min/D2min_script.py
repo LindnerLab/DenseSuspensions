@@ -10,21 +10,21 @@ import numpy as np
 import pandas as pd
 import math as m
 import matplotlib as mpl
-import matplotlib.pyplot as plt # For convenience
+import matplotlib.pyplot as plt
 from D2min_functions import neighboring_particles, d2min_particle, deviatoric_strain
 
 start_frame = 56
-interval = 120
+interval = 5
 neighbor_cutoff = 70
 avg_distance = 45
 vmin = 0
 vmax = 0.1
 verbose = False
-save_files = False
-path = r'F:\Lars\Oscillatory Compression\20200820 Soft Particle Oscillation\Avg75_Amp50_Per120_Back25'
-output = 'Pmax'
+save_files = True
+path = r'E:\Lars\Oscillatory Compression\20210127\E10000_Avg125_Amp100_Back25_Per600'
+output = 'I5'
 
-tracked_complete = pd.read_pickle(os.path.join(path, r'Preprocessed\V1\Complete_tracks_renumbered.pkl'))
+tracked_complete = pd.read_pickle(os.path.join(path, r'Preprocessed\V1\tracked.pkl'))
 
 nParticles = len(tracked_complete.particle.unique())
 nFrames = len(tracked_complete.frame.unique())
@@ -73,10 +73,12 @@ for i in range(nCycles):
         plt.show()
 
 if save_files:
-    np.savetxt(os.path.join(path, r'Processed\D2min', output, 'D2min.csv'),
+    np.savetxt(os.path.join(path, r'Processed', output, 'D2min.csv'),
                d2min, delimiter = ',')
+    np.savetxt(os.path.join(path, r'Processed', output, 'Deviatoric.csv'),
+               strain_deviatoric, delimiter = ',')
     
-bins = 10**np.arange(-2,3,0.1)
+bins = 10**np.arange(-1,4,0.1)
 d2min_binned = np.zeros((len(bins)-1,3))
 for i in range(len(bins)-1):
     idx = np.logical_and(strain_deviatoric >= bins[i],
@@ -101,7 +103,8 @@ plt.scatter(strain_deviatoric, d2min,
           alpha=0.2)
 plt.xscale('log')
 plt.yscale('log')
-plt.xlim([0.01, 1000])
+plt.xlim([0.1, 10000])
+plt.ylim([0.0001, 1000])
 plt.xlabel('Deviatoric strain (-)')
 plt.ylabel('$D^{2}_{min}/D^{2} (-)$')
 plt.show()

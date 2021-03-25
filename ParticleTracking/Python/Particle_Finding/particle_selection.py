@@ -57,15 +57,18 @@ More info on this programme: https://caliper-itn.org/
 import numpy as np
 import skimage.measure as measure
 
-def particle_selection(img_conv_bin, img_conv_norm, selection_criteria):
+def particle_selection(img_conv_bin, img_conv_norm, selection_criteria, radius):
     # Determine the number of criteria given
-    nCriteria = len(selection_criteria)    
+    nCriteria = len(selection_criteria)
     # Determine regionprops of all labelled regions
     img_label = measure.label(img_conv_bin)
-    props = measure.regionprops(img_label, intensity_image=img_conv_norm)
+    props = np.array(measure.regionprops(img_label, intensity_image=img_conv_norm))
+    centroids = np.array([prop.weighted_centroid for prop in props])
+    _temp = np.all(centroids > radius*1.5, axis=1)
+    props = props[_temp]
     nRegions = np.shape(props)[0]
     # Extract centroids from regionprops
-    centroids = np.array([prop.weighted_centroid for prop in props])
+    centroids = centroids[_temp]
     prop_intensity = np.array([[prop.max_intensity,
                                 prop.mean_intensity] for prop in props])
 
