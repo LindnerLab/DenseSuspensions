@@ -58,13 +58,17 @@ def find_serial(img, path, fname, settings):
     radii = np.array(settings['R'])
     nTypes = np.shape(radii)[0]
     nFill = int(np.ceil(np.log10(nTypes)))
-    selection_criteria = pd.DataFrame(settings['selection_criteria'])
+    # selection_criteria = pd.DataFrame(settings['selection_criteria'])
     # Set all pixels below a threshold to 0 (increase contrast), and pad image
     img[img < settings['thresh_img']] = 0
     # For each particle type, perform particle convolution to find the centers
     locs_output = []
     fit_vals_output = []
     for i in range(nTypes):
+        selection_criteria = pd.DataFrame(np.array([settings['selection_criteria'][key][i]
+                                           for key in settings['selection_criteria']],
+                                                   dtype=object).transpose(),
+                                           columns=settings['selection_criteria'].keys())
         img_pad = np.pad(img, (np.max(radii[i]*5), np.max(radii[i]*5)))
         mask = create_annulus_mask(radii[i], np.shape(img_pad))
         locs, fit_vals = find_particles_convolution(img_pad,

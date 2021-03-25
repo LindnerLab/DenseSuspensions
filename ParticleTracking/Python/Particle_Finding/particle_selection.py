@@ -86,14 +86,15 @@ def particle_selection(img_conv_bin, img_conv_norm, selection_criteria, radius):
             value = selection_criteria.value[i]
             criteria = selection_criteria.criteria[i]
             region_props = np.array([prop[property_] for prop in props])
+            region_props = np.expand_dims(region_props, region_props.ndim)
             # Adds a vector with logical values to Selection, where 1 means the
             # regionproperty of that region complies with the given criteria
             # and 0 means that the regionproperty doesnt comply with the
             # criteria.
             if criteria.lower() == 'greater':
-                selection[i, :] = np.array([region_props > value])
+                selection[i, :, None] = np.all(region_props > value, axis=1).reshape((nRegions, 1))
             elif criteria.lower() == 'smaller':
-                selection[i, :] = np.array([region_props < value])
+                selection[i, :, None] = np.all(region_props < value, axis=1).reshape((nRegions, 1))
         # AND gate with nCriteria inputs, output == 1 if all inputs are 1, else output == 0
         particles = centroids[np.prod(selection, axis=0).astype(bool)][:]
         fit_vals = prop_intensity[np.prod(selection, axis=0).astype(bool)][:]

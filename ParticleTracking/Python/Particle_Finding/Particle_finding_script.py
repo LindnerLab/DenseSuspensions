@@ -18,6 +18,7 @@ agreement No. 813162
 More info on this programme: https://caliper-itn.org/
 """
 
+
 import os
 import sys
 import json
@@ -29,13 +30,13 @@ from find_parallel import find_parallel
 from visualize_found_particles import visualize_found_particles
 
 # %% Indicate data locations
-DIRECTORY = r'E:\Lars\Oscillatory Compression\20210223\Avg125_Amp100_Back25_Per600_C30'
+DIRECTORY = r'G:\Lars\Oscillatory Compression\20210223\Avg125_Amp100_Back25_Per600_C30'
 VERSION = r'V1'
 INPUT = r'RawData'
 OUTPUT = r'Preprocessed'
 load_settings = False
 # Set file of interest to analyse verbosely (Set settings['verbose'] to True!)
-files_of_interest = [184]
+files_of_interest = [0]
 
 # %% Indicate data processing parameters
 PATH = [DIRECTORY, INPUT, OUTPUT, VERSION]
@@ -74,9 +75,12 @@ if not load_settings:
     # locations. Every key contains a list of length Ncriteria, where identical
     # index means identical criterium.
     selection_criteria = {}
-    selection_criteria['property_'] = ['Area', 'Area']
-    selection_criteria['value'] = [35, 200]
-    selection_criteria['criteria'] = ['greater', 'smaller']
+    selection_criteria['property_'] = [['Area', 'Area', 'Centroid', 'Centroid'],
+                                       ['Area', 'Area', 'Centroid', 'Centroid']]
+    selection_criteria['value'] = [[35, 200, 22, 2281],
+                                   [35, 200, 30, 2273]]
+    selection_criteria['criteria'] = [['greater', 'smaller', 'greater', 'smaller'],
+                                      ['greater', 'smaller', 'greater', 'smaller']]
     settings['selection_criteria'] = selection_criteria
 else:
     if os.path.isfile(os.path.join(PATH[0], PATH[2], VERSION, r'settings.json')):

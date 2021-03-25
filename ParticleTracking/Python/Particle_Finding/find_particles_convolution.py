@@ -77,8 +77,3 @@ def find_particles_convolution(img, radius, selection_criteria, threshold, mask)
     # Correct for offset of the mask (r,r)
     particles = particles - radius
     return particles, fit_vals
-
-if __name__ == '__main__':
-    import matplotlib.pyplot as plt
-    plt.figure(dpi=500)
-    plt.imshow(img_conv_norm, cmap = 'gray')
