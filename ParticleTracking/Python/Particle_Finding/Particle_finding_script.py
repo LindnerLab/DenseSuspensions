@@ -30,7 +30,7 @@ from find_parallel import find_parallel
 from visualize_found_particles import visualize_found_particles
 
 # %% Indicate data locations
-DIRECTORY = r'G:\Lars\Oscillatory Compression\20210223\Avg125_Amp100_Back25_Per600_C30'
+DIRECTORY = r'G:\Lars\Oscillatory Compression\20210127\Avg125_Amp100_Back25_Per600_C90'
 VERSION = r'V1'
 INPUT = r'RawData'
 OUTPUT = r'Preprocessed'
@@ -51,7 +51,7 @@ if not load_settings:
     settings['R'] = [[19, 22], [26, 30]]
     # x,y coordinates of the top left and bottom right pixel to crop the image
     # (X-TL,Y-TL,X-BR,Y-BR)
-    settings['crop'] = [0, 2303, 170, 2210]
+    settings['crop'] = [0, 2303, 140, 2180]
     # Value to threshold the image before convolution (main way to adjust
     # sensitivity of the particle finding algorithm, after the mask has been
     # optimized)
@@ -66,11 +66,11 @@ if not load_settings:
     # Divide image by a coarse gaussian blur of the image (to correct for
     # background illumination inhomogeneities)
     settings['div_gauss'] = True
-    settings['save_files'] = False
-    settings['parallel_processing'] = False
+    settings['save_files'] = True
+    settings['parallel_processing'] = True
     settings['nCores'] = 14
     # Outputs the particle locations as numpy array for easy debugging
-    settings['verbose'] = True
+    settings['verbose'] = False
     # Dict with criteria to use to select particles from possible particle
     # locations. Every key contains a list of length Ncriteria, where identical
     # index means identical criterium.
