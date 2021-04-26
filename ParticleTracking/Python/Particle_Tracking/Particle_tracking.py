@@ -12,7 +12,7 @@ More info on this programme: https://caliper-itn.org/
 
 from track_particles import track_particles
 
-datapath = r'E:\Lars\Oscillatory Compression\20210223\Avg125_Amp100_Back25_Per600_C30\Preprocessed\V1'
+datapath = r'G:\Lars\Oscillatory Compression\20210222\Avg125_Amp100_Back25_Per600_C50\Preprocessed\V1'
 dataFormat = 'pkl'
 minLength = 1100
 search_range = 10

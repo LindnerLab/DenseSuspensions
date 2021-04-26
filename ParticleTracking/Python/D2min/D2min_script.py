@@ -21,8 +21,8 @@ vmin = 0
 vmax = 0.1
 verbose = False
 save_files = True
-path = r'E:\Lars\Oscillatory Compression\20210127\E10000_Avg125_Amp100_Back25_Per600'
-output = 'I5'
+path = r'G:\Lars\Oscillatory Compression\20210222\Avg125_Amp100_Back25_Per600_C50'
+output = 'I'+str(interval)
 
 tracked_complete = pd.read_pickle(os.path.join(path, r'Preprocessed\V1\tracked.pkl'))
 

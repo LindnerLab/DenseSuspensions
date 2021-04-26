@@ -196,12 +196,16 @@ def d2min_particle(xy_particle, xy_particle_next,
         test=1
     return d2min, M
 
-def deviatoric_strain(M):
-    strain_Lagrangian = 0.5*(np.dot(M, M.T)-np.identity(3))
-    hydrostatic_invariant = 0.5*np.trace(strain_Lagrangian)
-    strain_deviatoric = np.sqrt(0.5*np.trace(strain_Lagrangian
-                                             -np.dot(hydrostatic_invariant,
-                                                     np.identity(3)))**2)
+def deviatoric_strain(M_list):
+    nParticles = len(M_list)
+    strain_deviatoric = np.zeros((nParticles, ))
+    
+    for i, M in enumerate(M_list):
+        strain_Lagrangian = 0.5*(np.dot(M, M.T)-np.identity(3))
+        hydrostatic_invariant = 0.5*np.trace(strain_Lagrangian)
+        strain_deviatoric[i] = np.sqrt(0.5*np.trace(strain_Lagrangian
+                                                 -np.dot(hydrostatic_invariant,
+                                                         np.identity(3)))**2)
     return strain_deviatoric
 
 if __name__ == '__main__':
