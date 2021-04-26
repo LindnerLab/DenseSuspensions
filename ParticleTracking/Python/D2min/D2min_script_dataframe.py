@@ -11,7 +11,7 @@ More info on this programme: https://caliper-itn.org/
 """
 
 import os
-import pickle5 as pickle
+import pickle
 import numpy as np
 import pandas as pd
 import ipyparallel as ipp
@@ -20,7 +20,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from D2min_functions import neighboring_particles, d2min_particle, deviatoric_strain
 
-def d2min_serial(tracked_complete, i, interval, neighbor_cutoff, nParticles, path, nFill, verbose, save_files):
+def d2min_serial(tracked_complete, i, interval, neighbor_cutoff, nParticles, path, nFill, save_files):
     d2min = np.zeros([nParticles])
     M = [[] for i in range(nParticles)]
     strain_deviatoric = np.zeros([nParticles])
@@ -55,8 +55,8 @@ def d2min_serial(tracked_complete, i, interval, neighbor_cutoff, nParticles, pat
                                      str(i).zfill(nFill) + '.pkl'))
         
 def d2min_dummy(i):
-    import D2min_script_dataframe
-    d2min_serial(tracked_complete, i, interval, neighbor_cutoff, nParticles, path, nFill, verbose, save_files)
+    import D2min.D2min_script_dataframe as d2min
+    d2min.d2min_serial(tracked_complete, interval, neighbor_cutoff, nParticles, path, nFill, save_files, i)
     return
 
     # if verbose:
@@ -79,18 +79,18 @@ def d2min_dummy(i):
     #     ax.get_yaxis().set_visible(False)
     #     plt.show()
 
-def d2min_parallel(tracked_complete, interval, neighbor_cutoff, nParticles, path, nFill, verbose, save_files):
+def d2min_parallel(tracked_complete, interval, neighbor_cutoff, nParticles, path, nFill, save_files):
     files = next(os.walk(os.path.join(path, 'Processed', 'D2min', str(interval))))[2]
     idx = [i for i in range(nFrames - interval) if str(i).zfill(nFill) + '.pkl' not in files]
     # constants to push to the cores:
-    workers.push({'tracked_complete': tracked_complete,
-                  'interval': interval,
-                  'nParticles': nParticles,
-                  'neighbor_cutoff': neighbor_cutoff,
-                  'path': path,
-                  'nFill': nFill,
-                  'verbose': verbose,
-                  'save_files': save_files})
+    workers.push({'tracked_complete': tracked_complete})
+    # 'interval': interval,
+    #               'nParticles': nParticles,
+    #               'neighbor_cutoff': neighbor_cutoff,
+    #               'path': path,
+    #               'nFill': nFill,
+    #               'verbose': verbose,
+    #               'save_files': save_files}
     # execute:
     _task = workers.map(d2min_dummy, idx)
     _task.wait_interactive()
@@ -119,4 +119,4 @@ nParticles = len(tracked_complete.particle.unique())
 nFrames = len(tracked_complete.frame.unique())
 nCycles = m.floor((nFrames-start_frame)/interval)
 
-d2min_parallel(tracked_complete, interval, neighbor_cutoff, nParticles, path, nFill, verbose, save_files)
+d2min_parallel(tracked_complete, interval, neighbor_cutoff, nParticles, path, nFill, save_files)
