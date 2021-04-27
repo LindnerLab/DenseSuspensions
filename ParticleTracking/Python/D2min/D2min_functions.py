@@ -5,9 +5,16 @@ Functions used to calculate D2min of ensembles of particles.
 Dependencies:
     - Pandas
     - Numpy
+    - OS
+    - ipyparallel
+    - Python < 3.8.0
+    - 
 
 @author: Lars Kool
 """
+import os
+import pickle5 as pickle
+from ipyparallel import Client
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -208,44 +215,49 @@ def deviatoric_strain(M_list):
                                                          np.identity(3)))**2)
     return strain_deviatoric
 
-if __name__ == '__main__':
-    pass
-    plt.figure(dpi=500)
-    plt.plot(xy_particle_next[:, 0], xy_particle_next[:, 1],
-              linestyle='none',
-              marker='o',
-              markersize=5,
-              alpha=0.5,
-              markerfacecolor='blue')
-    plt.plot(xy_particle_transformed[:, 0], xy_particle_transformed[:, 1],
-              linestyle='none',
-              marker='o',
-              markersize=5,
-              alpha=0.5,
-              markerfacecolor='blue')
-    plt.plot(xy_neighbors_transformed[:, 0], xy_neighbors_transformed[:, 1],
-              linestyle='none',
-              marker='o',
-              markersize=5,
-              alpha=0.5,
-              markerfacecolor='green')
-    plt.plot(xy_neighbors_next[:, 0], xy_neighbors_next[:, 1],
-              linestyle='none',
-              marker='o',
-              markersize=5,
-              alpha=0.5,
-              markerfacecolor='red')
-    # plt.plot(xy_neighbors[:, 0], xy_neighbors[:, 1],
-    #           linestyle='none',
-    #           marker='o',
-    #           markersize=5,
-    #           alpha=0.5,
-    #           markerfacecolor='orange')
-    # plt.plot(test3[:, 0], test3[:, 1],
-    #           linestyle='none',
-    #           marker='o',
-    #           markersize=5,
-    #           alpha=0.5,
-    #           markerfacecolor='purple')
-    plt.show()
+def d2min_serial(i, settings):
+    interval = settings['interval']
+    neighbor_cutoff = settings['neighbor_cutoff']
+    save_files = settings['save_files']
+    path = settings['path']
+
+    with open(os.path.join(path, r'Preprocessed\V1\tracked.pkl'), "rb") as fh:
+        tracked_complete = pickle.load(fh)
+
+    nParticles = len(tracked_complete.particle.unique())
+    nFrames = len(tracked_complete.frame.unique())
+    nFill = int(np.ceil(np.log10(nFrames)))
     
+    d2min = np.zeros([nParticles])
+    M = [[] for i in range(nParticles)]
+    strain_deviatoric = np.zeros([nParticles])
+    
+    x = tracked_complete[tracked_complete.frame == i].x
+    y = tracked_complete[tracked_complete.frame == i].y
+    frames = tracked_complete[tracked_complete.frame == i].frame
+    xy_frame = np.array([x, y]).transpose()
+    xy_next = np.array([tracked_complete[tracked_complete.frame == i+interval].x,
+                         tracked_complete[tracked_complete.frame == i+interval].y]
+                        ).transpose()
+    r_frame = np.array([tracked_complete[tracked_complete.frame == i].r])
+    neighbors = neighboring_particles(xy_frame, neighbor_cutoff)
+    
+    for j in range(nParticles):
+        xy_particle = xy_frame[j, :].reshape([1, 2])
+        xy_particle_next = xy_next[j, :].reshape([1, 2])
+        xy_neighbors = xy_frame[neighbors[j], :]
+        xy_neighbors_next = xy_next[neighbors[j], :]
+        d2min[j], M[j] = d2min_particle(xy_particle, xy_particle_next, xy_neighbors, xy_neighbors_next)
+    strain_deviatoric = deviatoric_strain(M)
+    _dict = {'x': x,
+             'y': y,
+             'r': r_frame.reshape((nParticles, )),
+             'frame': frames,
+             'Affine': M,
+             'D2min': d2min,
+             'Deviatoric': strain_deviatoric}
+    D2min = pd.DataFrame(_dict)
+    if save_files:
+        D2min.to_pickle(os.path.join(path, 'Processed', 'D2min', str(interval),
+                                     str(i).zfill(nFill) + '.pkl'))
+    return
