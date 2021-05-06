@@ -30,7 +30,7 @@ from find_parallel import find_parallel
 from visualize_found_particles import visualize_found_particles
 
 # %% Indicate data locations
-DIRECTORY = r'G:\Lars\Oscillatory Compression\20210421\Avg125_Amp100_Back25_Per600_C40'
+DIRECTORY = r'G:\Lars\Oscillatory Compression\20210222\Avg125_Amp100_Back25_Per600_C50'
 VERSION = r'V1'
 INPUT = r'RawData'
 OUTPUT = r'Preprocessed'
@@ -51,7 +51,7 @@ if not load_settings:
     settings['R'] = [[19, 22], [26, 30]]
     # x,y coordinates of the top left and bottom right pixel to crop the image
     # (X-TL,Y-TL,X-BR,Y-BR)
-    settings['crop'] = [0, 2303, 110, 2130]
+    settings['crop'] = [0, 2303, 150, 2190]
     # Value to threshold the image before convolution (main way to adjust
     # sensitivity of the particle finding algorithm, after the mask has been
     # optimized)

@@ -65,7 +65,7 @@ def calc_strain_rate(tracked, Cauchy=False, Hencky=False, direction='y', dt=1, f
 
 
 if __name__ == '__main__':
-    path = r'E:\Lars\Oscillatory Compression\20210223\Avg125_Amp100_Back25_Per600_C30'
+    path = r'G:\Lars\Oscillatory Compression\20210421\Avg125_Amp100_Back25_Per600_C40'
     file = r'Preprocessed\V1\tracked.pkl'
 
     tracked = pd.read_pickle(os.path.join(path, file))
